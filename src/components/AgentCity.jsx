@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
 import { ArrowUpRight, Bot, FileText, Inbox, Sparkles } from "lucide-react";
 
 const neighborhoods = [
@@ -52,8 +52,35 @@ function Tree({ x, y, scale = 1, color = "#7eaa78" }) {
 }
 
 export default function AgentCity({ briefCount, activeAgents, reviewCount, onNavigate }) {
+  const prefersReducedMotion = useReducedMotion();
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const rotateY = useSpring(useTransform(pointerX, [-1, 1], [-1.1, 1.1]), { stiffness: 180, damping: 24 });
+  const rotateX = useSpring(useTransform(pointerY, [-1, 1], [0.8, -0.8]), { stiffness: 180, damping: 24 });
+
+  function followPointer(event) {
+    if (prefersReducedMotion || event.pointerType !== "mouse") return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    pointerX.set(((event.clientX - bounds.left) / bounds.width - 0.5) * 2);
+    pointerY.set(((event.clientY - bounds.top) / bounds.height - 0.5) * 2);
+  }
+
+  function resetPointer() {
+    pointerX.set(0);
+    pointerY.set(0);
+  }
+
   return (
-    <section className="agent-city relative overflow-hidden rounded-[26px] border border-[#e7dfd3] shadow-[0_24px_65px_rgba(42,36,29,.08)]">
+    <div
+      className="relative"
+      style={{ perspective: "1500px" }}
+      onPointerMove={followPointer}
+      onPointerLeave={resetPointer}
+    >
+    <motion.section
+      style={prefersReducedMotion ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
+      className="agent-city relative overflow-hidden rounded-[26px] border border-[#e7dfd3] shadow-[0_24px_65px_rgba(42,36,29,.08)]"
+    >
       <div className="agent-city-grain pointer-events-none absolute inset-0" />
       <div className="relative z-10 flex flex-wrap items-start justify-between gap-4 px-5 pt-5 sm:px-7 sm:pt-6">
         <div>
@@ -234,6 +261,7 @@ export default function AgentCity({ briefCount, activeAgents, reviewCount, onNav
           <span><strong className="font-mono font-medium text-[#625b52]">{reviewCount}</strong> por revisar</span>
         </div>
       </div>
-    </section>
+    </motion.section>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Activity, ArrowDown, Check, Circle, Clock3, FileSearch2, ListFilter, RotateCw, WandSparkles, X } from "lucide-react";
 import { get } from "../api.js";
 import { EmptyState, Panel, SectionHeading, StatusBadge, buttonClass } from "../components/ui.jsx";
@@ -24,6 +25,7 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [simulationStep, setSimulationStep] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
   const [briefId, setBriefId] = useState(execution?.briefId ? String(execution.briefId) : "");
   const executionSteps = execution?.steps || [];
   const isRunning = loading || isProcessing || execution?.status === "RUNNING";
@@ -91,12 +93,31 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
               const complete = ["SUCCEEDED", "SUCCESS", "COMPLETED"].includes(state);
               const failed = ["FAILED", "ERROR"].includes(state);
               const current = pendingVisual && !result && index === simulationStep;
+              const pathComplete = complete || (isRunning && index < simulationStep);
               const color = failed ? "text-rose-300 border-rose-400/30 bg-rose-400/10" : complete ? "text-emerald-300 border-emerald-400/25 bg-emerald-400/[.07]" : current ? "text-indigo-300 border-indigo-400/35 bg-indigo-400/10" : "text-slate-500 border-slate-800 bg-slate-950/40";
               return (
                 <div key={handler} className="relative flex gap-4 pb-5 last:pb-0">
-                  {index !== mergedStages.length - 1 && <span className={`absolute left-[17px] top-10 h-[calc(100%-24px)] w-px ${complete ? "bg-emerald-500/30" : "bg-slate-800"}`} />}
+                  {index !== mergedStages.length - 1 && (
+                    <span className="absolute left-[17px] top-10 h-[calc(100%-24px)] w-px bg-slate-200">
+                      <motion.span
+                        className={`absolute inset-x-0 top-0 block h-full origin-top ${complete || (isRunning && index < simulationStep) ? "bg-indigo-400" : "bg-emerald-400"}`}
+                        initial={false}
+                        animate={{ scaleY: pathComplete ? 1 : 0 }}
+                        transition={{ duration: prefersReducedMotion ? 0 : 0.65, ease: [0.22, 1, 0.36, 1] }}
+                      />
+                    </span>
+                  )}
                   <span className={`relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-xl border ${color}`}>
-                    {complete ? <Check size={15} /> : failed ? <X size={15} /> : current ? <span className="h-2 w-2 animate-pulse rounded-full bg-indigo-300" /> : <Icon size={15} />}
+                    {current && !prefersReducedMotion && (
+                      <motion.span
+                        aria-hidden="true"
+                        className="absolute inset-0 rounded-xl border border-indigo-400/70"
+                        initial={{ opacity: 0.65, scale: 1 }}
+                        animate={{ opacity: 0, scale: 1.38 }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
+                      />
+                    )}
+                    {complete ? <Check size={15} /> : failed ? <X size={15} /> : current ? <span className={`h-2 w-2 rounded-full bg-indigo-400 ${prefersReducedMotion ? "" : "animate-pulse"}`} /> : <Icon size={15} />}
                   </span>
                   <div className="min-w-0 flex-1 pt-0.5">
                     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
@@ -125,7 +146,17 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
           </div>
           <div className="scrollbar-subtle flex-1 space-y-3 overflow-y-auto bg-slate-950/30 px-5 py-5 font-mono text-[10px] leading-5 sm:px-6">
             {isRunning && simulatedLogs.slice(0, simulationStep + 1).map((log, index) => (
-              <div key={log} className="flex gap-3 text-indigo-200/80"><span className="shrink-0 text-slate-600">{new Date().toLocaleTimeString("es-CO", { hour12: false })}</span><span><span className="mr-2 text-indigo-400">~</span>{log}</span>{index === simulationStep && <span className="ml-auto h-1.5 w-1.5 self-center rounded-full bg-indigo-400" />}</div>
+              <motion.div
+                key={log}
+                initial={prefersReducedMotion ? false : { opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
+                className="flex gap-3 text-indigo-700"
+              >
+                <span className="shrink-0 text-slate-500">{new Date().toLocaleTimeString("es-CO", { hour12: false })}</span>
+                <span><span className="mr-2 text-indigo-500">~</span>{log}</span>
+                {index === simulationStep && <span className="ml-auto h-1.5 w-1.5 self-center rounded-full bg-indigo-500" />}
+              </motion.div>
             ))}
             {executionSteps.map((step) => (
               <div key={step.id || `${step.stepOrder}-${step.handler}`} className="border-l border-slate-700 pl-3 text-slate-300">

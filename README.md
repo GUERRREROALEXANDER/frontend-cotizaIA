@@ -6,6 +6,8 @@ Centro de operaciones para agencias, construido con React, Vite, Tailwind CSS, F
 
 La interfaz usa una dirección editorial clara inspirada en la ficha “Apple iPhone Duo” de Refero Styles: tipografía de sistema, superficies blancas, controles redondeados y azul para las acciones principales. Los acentos cálidos conservan su función para importes y datos comerciales; la ilustración de la ciudad de agentes es original de CotizaIA.
 
+El mapa isométrico admite un leve seguimiento del puntero en escritorio y anima sus rutas de agentes. El monitor del pipeline revela el avance entre handlers y cada nuevo registro de la transacción. Los efectos respetan la preferencia del sistema por movimiento reducido.
+
 ## Requisitos
 
 - Node.js 20 o superior
