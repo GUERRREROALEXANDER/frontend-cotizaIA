@@ -1,180 +1,202 @@
-import { useEffect, useMemo, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { Activity, ArrowDown, Check, Circle, Clock3, FileSearch2, ListFilter, RotateCw, WandSparkles, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useReducedMotion } from "framer-motion";
+import { Activity, ListChecks, Search } from "lucide-react";
 import { get } from "../api.js";
-import { EmptyState, Panel, SectionHeading, StatusBadge, buttonClass } from "../components/ui.jsx";
+import AgentCity from "../components/AgentCity.jsx";
+import { LimitedInput } from "../components/fields.jsx";
+import { StageStepper } from "../components/pipeline/StageStepper.jsx";
+import { agentStages, executionDurationMs, formatDuration, isFlagged, stepsByHandler } from "../components/pipeline/stages.js";
+import { Button, EmptyState, Panel, SectionHeading, StatusBadge, formatDateTime } from "../components/ui.jsx";
 
-const agentStages = [
-  { handler: "ExtractHandler", label: "Extracción", description: "Lectura del brief", icon: FileSearch2 },
-  { handler: "ClassifyHandler", label: "Clasificación", description: "Tipo de proyecto", icon: ListFilter },
-  { handler: "EstimateHandler", label: "Estimación", description: "Alcance y esfuerzo", icon: Clock3 },
-  { handler: "PriceHandler", label: "Precio", description: "Estrategia comercial", icon: WandSparkles },
-  { handler: "ComposeHandler", label: "Composición", description: "Propuesta final", icon: Activity },
-];
+const LAST_STAGE = agentStages.length - 1;
 
-const simulatedLogs = [
-  "Preparando el contexto del brief…",
-  "Identificando servicios y alcance inicial…",
-  "Calculando una estimación de esfuerzo…",
-  "Aplicando la estrategia de precios configurada…",
-  "Organizando la propuesta para revisión…",
-];
+function Meta({ label, value, mono = false }) {
+  return (
+    <div>
+      <dt className="text-[11px] font-medium text-faint">{label}</dt>
+      <dd className={`mt-0.5 text-[13px] text-fg ${mono ? "tabular font-mono" : ""}`}>{value}</dd>
+    </div>
+  );
+}
 
-export default function PipelineView({ activeExecution, recentExecution, onExecutionChange, isProcessing = false }) {
+export default function PipelineView({ activeExecution, recentExecution, onExecutionChange, isProcessing = false, onNavigate }) {
   const execution = activeExecution || recentExecution;
+  const reduce = useReducedMotion();
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [simulationStep, setSimulationStep] = useState(0);
-  const prefersReducedMotion = useReducedMotion();
-  const [briefId, setBriefId] = useState(execution?.briefId ? String(execution.briefId) : "");
-  const executionSteps = execution?.steps || [];
-  const isRunning = loading || isProcessing || execution?.status === "RUNNING";
+  const [expanded, setExpanded] = useState(null);
+  const [briefId, setBriefId] = useState(execution?.briefId != null ? String(execution.briefId) : "");
 
+  const executionSteps = execution?.steps || [];
+  const isLive = loading || isProcessing || execution?.status === "RUNNING";
+  // Only a fresh run without verified steps gets the illustrative stepper; a
+  // real RUNNING execution with steps is driven by API data alone.
+  const illustrative = loading || isProcessing || (execution?.status === "RUNNING" && executionSteps.length === 0);
+
+  // Illustrative progress: while the agent runs, the stepper lights up in
+  // order. Real API steps always override the simulation.
   useEffect(() => {
-    if (!loading) return undefined;
-    const timer = window.setInterval(() => setSimulationStep((current) => Math.min(current + 1, simulatedLogs.length - 1)), 1900);
+    if (!illustrative) return undefined;
+    const timer = window.setInterval(() => setSimulationStep((current) => Math.min(current + 1, LAST_STAGE)), 1600);
     return () => window.clearInterval(timer);
-  }, [loading, isProcessing]);
+  }, [illustrative]);
 
   const mergedStages = useMemo(() => {
-    const completedByHandler = new Map(executionSteps.map((step) => [step.handler, step]));
-    return agentStages.map((stage, index) => ({ ...stage, result: completedByHandler.get(stage.handler), index }));
+    const byHandler = stepsByHandler(executionSteps);
+    return agentStages.map((stage) => ({ ...stage, result: byHandler.get(stage.handler.toLowerCase()) || null }));
   }, [executionSteps]);
 
-  async function loadTimeline(event) {
-    event.preventDefault();
-    if (!briefId.trim()) return;
-    setLoading(true);
-    setLoadError("");
-    setSimulationStep(0);
-    try {
-      const executions = await get(`/api/executions?briefId=${encodeURIComponent(briefId.trim())}`);
-      const latest = executions[0];
-      if (!latest) throw new Error("Este brief todavía no tiene ejecuciones del agente.");
-      const detail = await get(`/api/executions/${latest.id}`);
-      onExecutionChange(detail);
-    } catch (error) {
-      setLoadError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  // Keep the search field pointing at the brief whose execution is on screen.
+  useEffect(() => {
+    if (execution?.briefId != null) setBriefId(String(execution.briefId));
+  }, [execution?.briefId]);
+
+  const loadTimeline = useCallback(
+    async (event) => {
+      event.preventDefault();
+      const id = briefId.trim();
+      if (!id) return;
+      setLoading(true);
+      setLoadError("");
+      setSimulationStep(0);
+      setExpanded(null);
+      try {
+        const executions = await get(`/api/executions?briefId=${encodeURIComponent(id)}`);
+        const latest = Array.isArray(executions) ? executions[0] : null;
+        if (!latest) throw new Error("Este brief todavía no tiene ejecuciones del agente.");
+        const detail = await get(`/api/executions/${latest.id}`);
+        onExecutionChange?.(detail);
+      } catch (error) {
+        setLoadError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [briefId, onExecutionChange],
+  );
+
+  const totalMs = executionDurationMs(execution);
+  const reviewCount = mergedStages.filter((stage) => isFlagged(stage.result)).length;
+  const showStepper = executionSteps.length > 0 || isLive;
 
   return (
-    <div className="portal-in">
+    <div>
       <SectionHeading
-        eyebrow="Motor autónomo · Cadena de handlers"
         title="El agente, paso a paso."
-        description="Observa el recorrido de cada brief y revisa el registro real de ejecución."
+        description="Observa el recorrido de cada brief y revisa el registro real de la ejecución."
         action={
-          <form onSubmit={loadTimeline} className="flex w-full gap-2 sm:w-auto">
-            <input value={briefId} onChange={(event) => setBriefId(event.target.value)} inputMode="numeric" placeholder="ID del brief" aria-label="ID del brief" className="w-full rounded-xl border border-slate-700/80 bg-slate-950/55 px-3 py-2.5 font-mono text-xs text-slate-100 outline-none placeholder:text-slate-600 focus:border-indigo-400/60 sm:w-28" />
-            <button type="submit" className={buttonClass}><RotateCw size={13} /> Consultar</button>
+          <form onSubmit={loadTimeline} className="flex w-full items-end gap-2 sm:w-auto">
+            <LimitedInput
+              label="ID del brief"
+              limit={12}
+              inputMode="numeric"
+              placeholder="4"
+              value={briefId}
+              onChange={(event) => setBriefId(event.target.value.replace(/\D/g, ""))}
+              className="w-full sm:w-36"
+              fieldClassName="w-full font-mono sm:w-28"
+            />
+            <Button type="submit" variant="primary" icon={Search} loading={loading}>
+              Buscar
+            </Button>
           </form>
         }
       />
 
-      {loadError && <div role="alert" className="mb-4 rounded-xl border border-rose-400/20 bg-rose-400/[.06] px-4 py-3 text-xs text-rose-300">{loadError}</div>}
+      {loadError && (
+        <Panel role="alert" className="mb-4 border-danger/30 bg-danger/5 px-4 py-3">
+          <p className="text-xs text-danger">{loadError}</p>
+        </Panel>
+      )}
 
-      <div className="grid gap-4 xl:grid-cols-[.9fr_1.1fr]">
-        <Panel className="p-5 sm:p-6">
-          <div className="mb-6 flex items-start justify-between">
-            <div>
-              <p className="text-sm font-semibold text-slate-100">Cadena de procesamiento</p>
-              <p className="mt-1 text-xs text-slate-500">Responsabilidad encadenada, evidencia por etapa</p>
+      <Panel className="mb-4 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge status={execution?.status || (isLive ? "RUNNING" : "PENDING")} />
+              <span className="font-mono text-[13px] text-fg">
+                {execution?.briefId != null ? `Brief #${execution.briefId}` : "Sin brief"}
+              </span>
+              {execution?.id != null && <span className="font-mono text-[11px] text-faint">Ejecución #{execution.id}</span>}
             </div>
-            <span className="rounded-lg border border-indigo-400/15 bg-indigo-400/[.07] px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-indigo-300">Agente IA</span>
+            <p className="mt-2 max-w-[68ch] text-xs text-muted">
+              Siete handlers encadenados. Cada etapa deja evidencia verificable en la API.
+            </p>
+            {execution?.errorMessage && (
+              <p role="alert" className="mt-2 max-w-[68ch] text-xs text-danger">
+                {execution.errorMessage}
+              </p>
+            )}
+          </div>
+          <dl className="flex flex-wrap gap-x-8 gap-y-3">
+            <Meta label="Inicio" value={formatDateTime(execution?.startedAt)} />
+            <Meta
+              label="Fin"
+              value={
+                execution?.finishedAt
+                  ? formatDateTime(execution.finishedAt)
+                  : execution
+                    ? isLive
+                      ? "En curso"
+                      : "Sin fecha"
+                    : "Sin fecha"
+              }
+            />
+            <Meta label="Duración" value={formatDuration(totalMs) || (isLive ? "En curso" : "Sin datos")} mono />
+          </dl>
+        </div>
+      </Panel>
+
+      <div className="grid gap-4 xl:grid-cols-12">
+        <Panel className="p-5 sm:p-6 xl:col-span-5">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold text-fg">Cadena de procesamiento</h2>
+              <p className="mt-0.5 text-xs text-muted">Responsabilidad encadenada, evidencia por etapa</p>
+            </div>
+            <span className="rounded-full border border-accent/25 bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent">
+              Agente IA
+            </span>
           </div>
 
-          <div className="space-y-0">
-            {mergedStages.map(({ handler, label, description, icon: Icon, result, index }) => {
-              const state = result?.status?.toUpperCase();
-              const pendingVisual = isRunning && index <= simulationStep;
-              const complete = ["SUCCEEDED", "SUCCESS", "COMPLETED"].includes(state);
-              const failed = ["FAILED", "ERROR"].includes(state);
-              const current = pendingVisual && !result && index === simulationStep;
-              const pathComplete = complete || (isRunning && index < simulationStep);
-              const color = failed ? "text-rose-300 border-rose-400/30 bg-rose-400/10" : complete ? "text-emerald-300 border-emerald-400/25 bg-emerald-400/[.07]" : current ? "text-indigo-300 border-indigo-400/35 bg-indigo-400/10" : "text-slate-500 border-slate-800 bg-slate-950/40";
-              return (
-                <div key={handler} className="relative flex gap-4 pb-5 last:pb-0">
-                  {index !== mergedStages.length - 1 && (
-                    <span className="absolute left-[17px] top-10 h-[calc(100%-24px)] w-px bg-slate-200">
-                      <motion.span
-                        className={`absolute inset-x-0 top-0 block h-full origin-top ${complete || (isRunning && index < simulationStep) ? "bg-indigo-400" : "bg-emerald-400"}`}
-                        initial={false}
-                        animate={{ scaleY: pathComplete ? 1 : 0 }}
-                        transition={{ duration: prefersReducedMotion ? 0 : 0.65, ease: [0.22, 1, 0.36, 1] }}
-                      />
-                    </span>
-                  )}
-                  <span className={`relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-xl border ${color}`}>
-                    {current && !prefersReducedMotion && (
-                      <motion.span
-                        aria-hidden="true"
-                        className="absolute inset-0 rounded-xl border border-indigo-400/70"
-                        initial={{ opacity: 0.65, scale: 1 }}
-                        animate={{ opacity: 0, scale: 1.38 }}
-                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
-                      />
-                    )}
-                    {complete ? <Check size={15} /> : failed ? <X size={15} /> : current ? <span className={`h-2 w-2 rounded-full bg-indigo-400 ${prefersReducedMotion ? "" : "animate-pulse"}`} /> : <Icon size={15} />}
-                  </span>
-                  <div className="min-w-0 flex-1 pt-0.5">
-                    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                      <div>
-                        <p className="text-xs font-medium text-slate-200">{label}</p>
-                        <p className="mt-1 font-mono text-[10px] text-slate-500">{handler}</p>
-                      </div>
-                      <span className="font-mono text-[10px] text-slate-500">{result?.durationMs != null ? `${result.durationMs} ms` : current ? "procesando…" : "—"}</span>
-                    </div>
-                    <p className="mt-1.5 text-[10px] text-slate-500">{result?.outputSummary || description}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          {!execution && !loading && <p className="mt-6 rounded-xl border border-slate-800/70 bg-slate-950/35 px-3.5 py-3 text-[10px] leading-5 text-slate-500">Para consultar una ejecución, procesa un brief desde «Briefs» o ingresa el ID de un brief existente.</p>}
+          {showStepper ? (
+            <StageStepper
+              stages={mergedStages}
+              expanded={expanded}
+              onToggle={(handler) => setExpanded((current) => (current === handler ? null : handler))}
+              live={illustrative}
+              simulationStep={simulationStep}
+              reduce={reduce}
+            />
+          ) : (
+            <EmptyState
+              icon={execution ? ListChecks : Activity}
+              title={execution ? "Sin pasos registrados" : "Aún no hay ejecuciones"}
+              description={
+                execution
+                  ? "El backend devolvió la ejecución pero todavía sin etapas. Vuelve a consultar en unos segundos."
+                  : "Procesa un brief desde Bandeja para que el agente recorra las siete etapas, o busca un ID de brief en el formulario superior."
+              }
+            />
+          )}
+
+          {illustrative && (
+            <p className="mt-4 flex items-center gap-2 border-t border-line pt-3 text-[11px] text-muted">
+              <span className="motion-safe:h-1.5 motion-safe:w-1.5 motion-safe:animate-pulse motion-safe:rounded-full bg-accent" aria-hidden="true" />
+              Progreso ilustrativo. Los pasos verificados aparecen al responder la API.
+            </p>
+          )}
         </Panel>
 
-        <Panel className="flex min-h-[400px] flex-col overflow-hidden">
-          <div className="flex items-center justify-between border-b border-slate-800/70 px-5 py-4 sm:px-6">
-            <div>
-              <p className="text-sm font-semibold text-slate-100">Registro de transacción</p>
-              <p className="mt-1 text-[10px] text-slate-500">Mensajes y resultados devueltos por la API</p>
-            </div>
-            {execution && <StatusBadge status={execution.status === "SUCCEEDED" ? "COMPLETED" : execution.status} />}
-          </div>
-          <div className="scrollbar-subtle flex-1 space-y-3 overflow-y-auto bg-slate-950/30 px-5 py-5 font-mono text-[10px] leading-5 sm:px-6">
-            {isRunning && simulatedLogs.slice(0, simulationStep + 1).map((log, index) => (
-              <motion.div
-                key={log}
-                initial={prefersReducedMotion ? false : { opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
-                className="flex gap-3 text-indigo-700"
-              >
-                <span className="shrink-0 text-slate-500">{new Date().toLocaleTimeString("es-CO", { hour12: false })}</span>
-                <span><span className="mr-2 text-indigo-500">~</span>{log}</span>
-                {index === simulationStep && <span className="ml-auto h-1.5 w-1.5 self-center rounded-full bg-indigo-500" />}
-              </motion.div>
-            ))}
-            {executionSteps.map((step) => (
-              <div key={step.id || `${step.stepOrder}-${step.handler}`} className="border-l border-slate-700 pl-3 text-slate-300">
-                <p className="text-[9px] text-slate-500">PASO {String(step.stepOrder).padStart(2, "0")} · {step.handler} · {step.durationMs ?? "—"} ms</p>
-                <p className={`mt-0.5 ${String(step.status).includes("FAIL") ? "text-rose-300" : "text-emerald-200/90"}`}>{step.outputSummary || step.inputSummary || "Etapa registrada por el backend."}</p>
-              </div>
-            ))}
-            {execution?.errorMessage && <p className="rounded-lg border border-rose-400/20 bg-rose-400/[.05] p-3 text-rose-300">{execution.errorMessage}</p>}
-            {execution && !executionSteps.length && !loading && <EmptyState icon={Circle} title="No hay pasos disponibles" description="El backend aún no ha almacenado pasos para esta ejecución." />}
-            {!execution && !isRunning && <div className="grid flex-1 place-items-center"><EmptyState icon={Activity} title="Esperando un brief" description="Los registros aparecerán aquí cuando el agente procese una solicitud." /></div>}
-            {!loading && !execution && <p className="text-slate-600"><span className="mr-2 text-indigo-400">›</span>Consola lista · esperando actividad</p>}
-          </div>
-          <div className="flex items-center gap-2 border-t border-slate-800/70 px-5 py-3 text-[9px] text-slate-600 sm:px-6">
-            <span className="h-1 w-1 rounded-full bg-indigo-400" />
-            {loading ? "Vista de progreso ilustrativa; los pasos verificados aparecen al responder la API." : `Brief ${execution?.briefId ?? "—"} · Ejecución ${execution?.id ?? "—"}`}
-            {loading && <ArrowDown size={12} className="ml-auto animate-bounce text-indigo-400" />}
-          </div>
-        </Panel>
+        <div className="xl:col-span-7">
+          <AgentCity
+            briefCount={execution?.briefId != null ? 1 : 0}
+            activeAgents={isLive ? 1 : 0}
+            reviewCount={reviewCount}
+            onNavigate={onNavigate}
+          />
+        </div>
       </div>
     </div>
   );

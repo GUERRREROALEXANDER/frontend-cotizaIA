@@ -34,7 +34,7 @@ export function formatRelative(value) {
   return rtf.format(seconds, "second");
 }
 
-const buttonVariants = {
+export const buttonVariants = {
   primary: "bg-accent text-accent-fg hover:bg-accent-hover border-transparent",
   secondary: "bg-surface-2 text-fg border-line hover:border-line-strong hover:bg-surface",
   ghost: "bg-transparent text-muted border-transparent hover:bg-surface-2 hover:text-fg",
