@@ -1,26 +1,32 @@
 import { useCallback, useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Bell, Bot, LogOut, RotateCw } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Sparkles } from "lucide-react";
+import { Toaster } from "sonner";
 import { get, tokenStorageKey } from "./api.js";
 import AuthScreen from "./components/AuthScreen.jsx";
-import NavigationDock from "./components/NavigationDock.jsx";
-import { buttonClass, Panel } from "./components/ui.jsx";
+import CommandPalette from "./components/CommandPalette.jsx";
+import NotificationsDrawer from "./components/NotificationsDrawer.jsx";
+import Sidebar from "./components/shell/Sidebar.jsx";
+import Topbar from "./components/shell/Topbar.jsx";
+import { Button, Panel } from "./components/ui.jsx";
+import { useHashView } from "./hooks/useHashView.js";
+import { useLocalFlag } from "./hooks/useLocalFlag.js";
+import { useNotifications } from "./hooks/useNotifications.js";
+import { reducedFade, viewTransition } from "./motion/presets.js";
+import { viewById, views } from "./navigation.js";
+import { useTheme } from "./theme/theme.js";
+import CatalogView from "./views/CatalogView.jsx";
+import ClientsView from "./views/ClientsView.jsx";
 import DashboardView from "./views/DashboardView.jsx";
 import InboxView from "./views/InboxView.jsx";
 import PipelineView from "./views/PipelineView.jsx";
 import PricingView from "./views/PricingView.jsx";
 import ProposalsView from "./views/ProposalsView.jsx";
+import RatesView from "./views/RatesView.jsx";
 
 const briefStorageKey = "cotizaia.briefs";
 const executionStorageKey = "cotizaia.recentExecution";
 
-const viewTitles = {
-  dashboard: ["Centro de operaciones", "Resumen ejecutivo"],
-  pipeline: ["Inteligencia autónoma", "Monitor del agente"],
-  inbox: ["Recepción multicanal", "Bandeja de briefs"],
-  pricing: ["Configuración comercial", "Estrategia de precios"],
-  proposals: ["Control de calidad", "Propuestas y aprobación"],
-};
 
 function readStoredBriefs() {
   try {
@@ -45,7 +51,14 @@ function getAuthToken() {
 
 export default function App() {
   const [token, setToken] = useState(getAuthToken);
-  const [activeView, setActiveView] = useState("dashboard");
+  const [activeView, setActiveView] = useHashView();
+  const { theme, toggleTheme } = useTheme();
+  const reduceMotion = useReducedMotion();
+  const [sidebarCollapsed, setSidebarCollapsed] = useLocalFlag("cotizaia.sidebarCollapsed", false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [focusProposalId, setFocusProposalId] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [proposals, setProposals] = useState([]);
   const [queue, setQueue] = useState([]);
@@ -98,17 +111,23 @@ export default function App() {
     if (token) void loadWorkspace();
   }, [token, loadWorkspace]);
 
+  // 1-8 jump between views; Ctrl/Cmd+K opens the command palette.
   useEffect(() => {
     function handleShortcut(event) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen((open) => !open);
+        return;
+      }
       if (event.altKey || event.ctrlKey || event.metaKey) return;
-      if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
-      const views = ["dashboard", "pipeline", "inbox", "pricing", "proposals"];
-      const index = Number(event.key) - 1;
-      if (index >= 0 && index < views.length) setActiveView(views[index]);
+      const tag = document.activeElement?.tagName;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(tag) || document.activeElement?.isContentEditable) return;
+      const target = views.find((view) => view.shortcut === event.key);
+      if (target) setActiveView(target.id);
     }
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
-  }, []);
+  }, [setActiveView]);
 
   const handleBriefCreated = useCallback((brief) => {
     if (!brief?.id) return;
@@ -134,6 +153,16 @@ export default function App() {
     void loadWorkspace();
   }, [loadWorkspace]);
 
+  const openProposal = useCallback((proposalId) => {
+    setFocusProposalId(proposalId);
+    setActiveView("proposals");
+  }, [setActiveView]);
+
+  const openBrief = useCallback((brief) => {
+    setSelectedBrief(brief);
+    setActiveView("inbox");
+  }, [setActiveView]);
+
   function signOut() {
     window.localStorage.removeItem(tokenStorageKey);
     setToken(null);
@@ -144,83 +173,98 @@ export default function App() {
     setClients([]);
   }
 
-  if (!token) return <AuthScreen onAuthenticated={setToken} />;
+  const notifications = useNotifications({ enabled: Boolean(token) && !loadingWorkspace });
+
+  const toaster = <Toaster theme={theme} position="bottom-right" closeButton toastOptions={{ className: "font-sans" }} />;
+
+  if (!token) return <>{<AuthScreen onAuthenticated={setToken} theme={theme} onToggleTheme={toggleTheme} />}{toaster}</>;
 
   if (loadingWorkspace) {
     return (
-      <main className="grid min-h-screen place-items-center bg-canvas text-center">
+      <main className="grid min-h-dvh place-items-center bg-bg text-center">
         <div>
-          <span className="mx-auto grid h-11 w-11 place-items-center rounded-2xl border border-indigo-400/20 bg-indigo-400/10 text-indigo-300"><Bot className="animate-pulse" size={20} /></span>
-          <p className="mt-4 text-xs text-slate-400">Preparando tu centro de operaciones…</p>
+          <span className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-accent text-accent-fg">
+            <Sparkles className="animate-pulse" size={20} aria-hidden />
+          </span>
+          <p className="mt-4 text-xs text-muted">Preparando tu centro de operaciones…</p>
         </div>
       </main>
     );
   }
 
-  const [workspaceTitle, viewTitle] = viewTitles[activeView];
+  const currentView = viewById[activeView] || viewById.dashboard;
+  const transition = reduceMotion ? reducedFade : viewTransition;
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-canvas">
-      <div className="ambient-grid pointer-events-none fixed inset-0 opacity-60" />
-      <div className="pointer-events-none fixed -left-48 top-0 h-[450px] w-[450px] rounded-full bg-indigo-600/[.055] blur-[145px]" />
-      <div className="pointer-events-none fixed -right-48 top-1/3 h-[380px] w-[380px] rounded-full bg-amber-500/[.035] blur-[135px]" />
+    <div className="flex min-h-dvh bg-bg text-fg">
+      <Sidebar
+        activeView={activeView}
+        onNavigate={setActiveView}
+        collapsed={sidebarCollapsed}
+        onToggleCollapsed={() => setSidebarCollapsed((value) => !value)}
+        mobileOpen={mobileNavOpen}
+        onMobileClose={() => setMobileNavOpen(false)}
+        counts={{ proposals: queue.length }}
+      />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Topbar
+          title={currentView.title}
+          user={user}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          onOpenPalette={() => setPaletteOpen(true)}
+          onOpenNotifications={() => setNotificationsOpen(true)}
+          unreadCount={notifications.unreadCount}
+          onRefresh={() => void loadWorkspace(true)}
+          refreshing={refreshing}
+          onSignOut={signOut}
+          onOpenMobileNav={() => setMobileNavOpen(true)}
+        />
+        <main className="mx-auto w-full max-w-[1320px] flex-1 px-4 pb-16 pt-6 sm:px-6">
+          {workspaceError && (
+            <Panel className="mb-5 flex flex-wrap items-center justify-between gap-3 border-danger/30 bg-danger/5 px-4 py-3">
+              <p role="alert" className="text-xs text-danger">No se pudo cargar toda la información: {workspaceError}</p>
+              <Button size="sm" variant="ghost" onClick={() => void loadWorkspace(true)}>Intentar de nuevo</Button>
+            </Panel>
+          )}
 
-      <header className="sticky top-0 z-30 border-b border-slate-800/80 bg-white/85 backdrop-blur-2xl">
-        <div className="mx-auto flex h-[68px] max-w-[1480px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-9">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-indigo-400/20 bg-indigo-400/[.08] text-indigo-300"><Bot size={17} /></div>
-            <div className="min-w-0">
-              <p className="truncate text-[10px] font-semibold uppercase tracking-[.16em] text-slate-500">{workspaceTitle}</p>
-              <p className="truncate text-xs font-semibold text-slate-200">{viewTitle}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button type="button" onClick={() => void loadWorkspace(true)} disabled={refreshing} title="Actualizar información" aria-label="Actualizar información" className={`${buttonClass} h-9 w-9 p-0`}>
-              <RotateCw size={14} className={refreshing ? "animate-spin" : ""} />
-            </button>
-            <button type="button" onClick={() => setActiveView("proposals")} title={`${queue.length} propuestas por revisar`} aria-label={`${queue.length} propuestas por revisar`} className="relative grid h-9 w-9 place-items-center rounded-full border border-slate-700 bg-white text-slate-400 transition hover:border-slate-600 hover:bg-slate-900 hover:text-slate-100">
-              <Bell size={15} />
-              {queue.length > 0 && <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-amber-400 ring-2 ring-white" />}
-            </button>
-            <span className="mx-1 hidden h-6 w-px bg-slate-800 sm:block" />
-            <div className="hidden text-right sm:block">
-              <p className="text-[10px] font-medium text-slate-300">Agencia #{user?.agencyId ?? "—"}</p>
-              <p className="mt-0.5 text-[9px] uppercase tracking-wider text-slate-600">{user?.role || "Operador"}</p>
-            </div>
-            <button type="button" onClick={signOut} title="Cerrar sesión" aria-label="Cerrar sesión" className="grid h-9 w-9 place-items-center rounded-full border border-slate-700 bg-white text-slate-400 transition hover:border-rose-400/30 hover:bg-rose-400/5 hover:text-rose-300">
-              <LogOut size={15} />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="sticky top-[68px] z-20 border-b border-slate-800/70 bg-white/75 py-2 backdrop-blur-xl sm:py-2.5">
-        <NavigationDock activeView={activeView} onNavigate={setActiveView} />
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div key={activeView} {...transition}>
+              {activeView === "dashboard" && <DashboardView analytics={analytics} proposals={proposals} clients={clients} queue={queue} briefs={briefs} activeExecution={activeExecution} recentExecution={recentExecution} onNavigate={setActiveView} onOpenProposal={openProposal} onOpenBrief={openBrief} />}
+              {activeView === "pipeline" && <PipelineView activeExecution={activeExecution} recentExecution={recentExecution} onExecutionChange={handleExecution} isProcessing={isProcessing} />}
+              {activeView === "inbox" && <InboxView clients={clients} briefs={briefs} selectedBrief={selectedBrief} onBriefCreated={handleBriefCreated} onBriefSelected={setSelectedBrief} onQuotation={handleQuotation} onExecution={handleExecution} isProcessing={isProcessing} onProcessing={setIsProcessing} onClientCreated={handleClientCreated} onNavigate={setActiveView} />}
+              {activeView === "pricing" && <PricingView pricingModel={pricingModel} proposals={proposals} onPricingModel={setPricingModel} onRefresh={() => loadWorkspace()} />}
+              {activeView === "proposals" && <ProposalsView proposals={proposals} queue={queue} onRefresh={() => loadWorkspace()} focusProposalId={focusProposalId} onFocusHandled={() => setFocusProposalId(null)} />}
+              {activeView === "clients" && <ClientsView clients={clients} onClientsChange={setClients} onRefresh={() => loadWorkspace()} />}
+              {activeView === "catalog" && <CatalogView />}
+              {activeView === "rates" && <RatesView />}
+            </motion.div>
+          </AnimatePresence>
+        </main>
       </div>
-      <main className="relative mx-auto min-h-[calc(100vh-128px)] max-w-[1480px] px-4 pb-16 pt-6 sm:px-6 sm:pt-8 lg:px-9">
 
-        {workspaceError && (
-          <Panel className="mb-5 flex flex-wrap items-center justify-between gap-3 border-rose-400/20 bg-rose-400/[.04] px-4 py-3">
-            <p role="alert" className="text-xs text-rose-300">No se pudo cargar toda la información: {workspaceError}</p>
-            <button type="button" onClick={() => void loadWorkspace(true)} className="text-xs text-rose-200 underline decoration-rose-300/30 underline-offset-4">Intentar de nuevo</button>
-          </Panel>
-        )}
-
-        <AnimatePresence mode="wait">
-          <motion.div key={activeView} initial={{ opacity: 0, y: 8, scale: 0.99, filter: "blur(3px)" }} animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }} exit={{ opacity: 0, y: -5, scale: 0.995, filter: "blur(2px)" }} transition={{ duration: 0.3, ease: [0.2, 0.75, 0.25, 1] }}>
-            {activeView === "dashboard" && <DashboardView analytics={analytics} proposals={proposals} clients={clients} queue={queue} briefs={briefs} activeExecution={activeExecution} onNavigate={setActiveView} />}
-            {activeView === "pipeline" && <PipelineView activeExecution={activeExecution} recentExecution={recentExecution} onExecutionChange={handleExecution} isProcessing={isProcessing} />}
-            {activeView === "inbox" && <InboxView clients={clients} briefs={briefs} selectedBrief={selectedBrief} onBriefCreated={handleBriefCreated} onBriefSelected={setSelectedBrief} onQuotation={handleQuotation} onExecution={handleExecution} isProcessing={isProcessing} onProcessing={setIsProcessing} onClientCreated={handleClientCreated} />}
-            {activeView === "pricing" && <PricingView pricingModel={pricingModel} proposals={proposals} onPricingModel={setPricingModel} onRefresh={() => loadWorkspace()} />}
-            {activeView === "proposals" && <ProposalsView proposals={proposals} queue={queue} onRefresh={() => loadWorkspace()} />}
-          </motion.div>
-        </AnimatePresence>
-      </main>
-
-      <footer className="pointer-events-none fixed bottom-0 left-0 right-0 z-10 hidden justify-between px-8 pb-2 text-[8px] uppercase tracking-[.17em] text-slate-700 lg:flex">
-        <span>CotizaIA · Centro de operaciones</span>
-        <span>Diseñado para decisiones con criterio</span>
-      </footer>
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        onNavigate={setActiveView}
+        clients={clients}
+        briefs={briefs}
+        proposals={proposals}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onOpenBrief={openBrief}
+        onOpenProposal={openProposal}
+        onSignOut={signOut}
+      />
+      <NotificationsDrawer
+        open={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+        notifications={notifications.notifications}
+        lastSeenId={notifications.lastSeenId}
+        onMarkAllRead={notifications.markAllRead}
+        onOpenProposal={(id) => { setNotificationsOpen(false); openProposal(id); }}
+      />
+      {toaster}
     </div>
   );
 }
