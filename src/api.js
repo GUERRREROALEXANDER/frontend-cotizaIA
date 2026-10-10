@@ -77,6 +77,54 @@ export function put(path, body) {
   return request(path, { method: "PUT", body: JSON.stringify(body) });
 }
 
+export function del(path) {
+  return request(path, { method: "DELETE" });
+}
+
+// Multipart upload with progress. fetch() has no upload progress events, so
+// this one call uses XMLHttpRequest; errors are shaped like request()'s.
+export function upload(path, formData, { onProgress } = {}) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${apiBase}${path}`);
+    const token = window.localStorage.getItem(tokenStorageKey);
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress?.(event.loaded / event.total);
+    };
+    xhr.onload = () => {
+      let body = null;
+      try {
+        body = xhr.responseText ? JSON.parse(xhr.responseText) : null;
+      } catch {
+        body = xhr.responseText;
+      }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(body);
+        return;
+      }
+      const message =
+        xhr.status === 413
+          ? "El archivo supera los 10 MB."
+          : body?.error || body?.message || `La solicitud falló (${xhr.status}).`;
+      const error = new Error(message);
+      error.status = xhr.status;
+      reject(error);
+    };
+    xhr.onerror = () => reject(new Error("No se pudo conectar con el backend."));
+    xhr.send(formData);
+  });
+}
+
+export async function downloadBriefAttachment(briefId) {
+  const token = window.localStorage.getItem(tokenStorageKey);
+  const response = await fetch(`${apiBase}/api/briefs/${briefId}/attachment`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!response.ok) throw new Error(`No se pudo abrir el PDF (${response.status}).`);
+  return response.blob();
+}
+
 export async function downloadProposalDocument(proposalId, type) {
   const token = window.localStorage.getItem(tokenStorageKey);
   const headers = token ? { Authorization: `Bearer ${token}` } : {};

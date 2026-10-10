@@ -1,62 +1,118 @@
 @import "tailwindcss";
-@config "../tailwind.config.js";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "./theme/tokens.css";
 
-:root {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #1d1d1f;
-  background: #f5f5f7;
-  color-scheme: light;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: "ss01" on, "tnum" on;
+/* Tailwind utilities resolve to the theme tokens, so bg-surface, text-muted,
+   border-line... switch with html[data-theme] and nothing else. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-fg: var(--text);
+  --color-muted: var(--text-muted);
+  --color-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --font-sans: "Geist Variable", system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --shadow-card: var(--shadow-sm);
+  --shadow-overlay: var(--shadow-overlay);
+  --ease-out: var(--ease-out);
+  --ease-fluid: var(--ease-fluid);
 }
 
-* { box-sizing: border-box; }
-body { min-width: 360px; min-height: 100vh; margin: 0; }
-button, input, textarea, select { font: inherit; }
-button { -webkit-tap-highlight-color: transparent; }
-::selection { background: rgba(11, 105, 227, .2); color: #111827; }
-
-.glass {
-  background: rgba(255, 255, 255, .86);
-  border: 1px solid rgba(29, 29, 31, .09);
-  box-shadow: 0 12px 34px rgba(29, 29, 31, .045);
-  backdrop-filter: blur(20px);
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    min-width: 360px;
+    min-height: 100dvh;
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    background: var(--bg);
+    transition: background-color var(--dur-panel) var(--ease-out), color var(--dur-panel) var(--ease-out);
+  }
+  h1, h2, h3 { text-wrap: balance; }
+  p { text-wrap: pretty; }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  button { -webkit-tap-highlight-color: transparent; }
+  ::selection { background: var(--accent); color: var(--accent-fg); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  ::placeholder { color: var(--text-faint); }
 }
 
-.ambient-grid {
-  background: radial-gradient(ellipse at 18% 8%, rgba(11, 105, 227, .045), transparent 40%);
+@layer utilities {
+  .tabular { font-variant-numeric: tabular-nums; }
+  .scrollbar-subtle { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+  .glass-bar {
+    background: var(--topbar-glass);
+    backdrop-filter: blur(16px) saturate(1.4);
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface-2) 0%, var(--border) 50%, var(--surface-2) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s var(--ease-fluid) infinite;
+  }
 }
 
-.scrollbar-subtle { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
-.scrollbar-subtle::-webkit-scrollbar { width: 5px; }
-.scrollbar-subtle::-webkit-scrollbar-thumb { border-radius: 999px; background: #334155; }
-
-@keyframes portal-in {
-  from { opacity: 0; filter: blur(10px); transform: perspective(1200px) scale(.965) translateY(12px); }
-  to { opacity: 1; filter: blur(0); transform: perspective(1200px) scale(1) translateY(0); }
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
 }
-.portal-in { animation: portal-in .55s cubic-bezier(.2,.75,.25,1) both; }
 
+@keyframes limit-shake {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-3px); }
+  60% { transform: translateX(2px); }
+}
+.limit-shake { animation: limit-shake 180ms var(--ease-out); }
+
+/* Agent city illustration (PipelineView). Kept from v1; the pipeline stage
+   retunes it for both themes. */
 .agent-city {
   background:
-    radial-gradient(ellipse at 14% 2%, rgba(255,255,255,.88), transparent 46%),
+    radial-gradient(ellipse at 14% 2%, oklch(1 0 0 / .88), transparent 46%),
     linear-gradient(145deg, #f5f0e8, #eee8dd 72%, #e9e6da);
 }
-
 .agent-city-grain {
   opacity: .24;
   background-image: radial-gradient(#aa9880 .55px, transparent .55px);
   background-size: 6px 6px;
   mask-image: linear-gradient(to bottom, #000, transparent 48%);
 }
-
-.agent-city-map {
-  filter: drop-shadow(0 5px 5px rgba(91, 77, 59, .035));
-}
+.agent-city-map { filter: drop-shadow(0 5px 5px rgba(91, 77, 59, .035)); }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }
