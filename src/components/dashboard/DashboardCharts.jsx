@@ -1,7 +1,7 @@
-import { useId, useMemo } from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useMemo } from "react";
+import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Panel } from "../ui.jsx";
-import { CHART_COLORS, buildStatusSeries, buildValueSeries, formatCompactCop } from "./dashboardData.js";
+import { buildStatusSeries, buildValueSeries, formatCompactCop } from "./dashboardData.js";
 import { formatCurrency } from "../ui.jsx";
 
 const axisTick = { fill: "var(--text-muted)", fontSize: 11 };
@@ -36,9 +36,11 @@ export function ProposalsStatusChart({ proposalsByStatus, className = "" }) {
       ) : (
         <div className="mt-4 h-[240px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} layout="vertical" margin={{ top: 0, right: 20, bottom: 0, left: 0 }} barCategoryGap="30%">
-              <CartesianGrid horizontal={false} stroke={gridStroke} />
-              <XAxis type="number" hide allowDecimals={false} />
+            {/* One series (count), so one hue: identity is the row label, not a
+                color. Thin 16px bars, 4px rounded data-end, value at the tip, no
+                gridlines because every bar is labeled (dataviz marks spec). */}
+            <BarChart data={data} layout="vertical" margin={{ top: 0, right: 36, bottom: 0, left: 0 }}>
+              <XAxis type="number" hide allowDecimals={false} domain={[0, "dataMax"]} />
               <YAxis
                 type="category"
                 dataKey="label"
@@ -52,11 +54,10 @@ export function ProposalsStatusChart({ proposalsByStatus, className = "" }) {
                 itemStyle={{ color: "var(--text)" }}
                 labelStyle={{ color: "var(--text-muted)" }}
                 cursor={{ fill: "var(--surface-2)" }}
+                formatter={(value) => [value, "Propuestas"]}
               />
-              <Bar dataKey="count" radius={[0, 6, 6, 0]} isAnimationActive animationDuration={480}>
-                {data.map((entry, index) => (
-                  <Cell key={entry.status} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                ))}
+              <Bar dataKey="count" fill="var(--chart-1)" barSize={16} radius={[0, 4, 4, 0]} isAnimationActive animationDuration={480} animationEasing="ease-out">
+                <LabelList dataKey="count" position="right" offset={8} fill="var(--text-muted)" fontSize={11} fontFamily="var(--font-mono)" />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -67,32 +68,29 @@ export function ProposalsStatusChart({ proposalsByStatus, className = "" }) {
 }
 
 export function QuotedValueChart({ proposals, className = "" }) {
-  const gradientId = useId().replace(/:/g, "");
   const data = useMemo(() => buildValueSeries(proposals), [proposals]);
   const total = data.reduce((sum, day) => sum + day.value, 0);
   const hasData = total > 0;
+  const peak = Math.max(0, ...data.map((day) => day.value));
 
   return (
     <Panel className={`flex flex-col p-5 ${className}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-fg">Valor cotizado (14 días)</h2>
-          <p className="mt-1 text-xs text-muted">Suma de los totales por día de creación</p>
+          <h2 className="text-sm font-semibold text-fg">Valor cotizado por día</h2>
+          <p className="mt-1 text-xs text-muted">Últimos 14 días, según la fecha de creación de cada propuesta</p>
         </div>
         <span className="font-mono text-sm text-fg">{formatCurrency(total)}</span>
       </div>
       {hasData ? (
         <div className="mt-4 h-[240px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
-              <defs>
-                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.32} />
-                  <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
+            {/* Daily totals are discrete buckets, so columns, not an interpolated
+                area (an area implied a ramp between days that never happened).
+                Only the peak day is labeled; the tooltip carries the rest. */}
+            <BarChart data={data} margin={{ top: 20, right: 8, bottom: 0, left: 0 }}>
               <CartesianGrid vertical={false} stroke={gridStroke} />
-              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={axisTick} minTickGap={16} />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={axisTick} minTickGap={12} interval="preserveStartEnd" />
               <YAxis
                 tickFormatter={formatCompactCop}
                 tickLine={false}
@@ -104,20 +102,21 @@ export function QuotedValueChart({ proposals, className = "" }) {
                 contentStyle={tooltipContent}
                 itemStyle={{ color: "var(--text)" }}
                 labelStyle={{ color: "var(--text-muted)" }}
-                formatter={(value) => [formatCurrency(value), "Valor"]}
+                cursor={{ fill: "var(--surface-2)" }}
+                formatter={(value) => [formatCurrency(value), "Valor cotizado"]}
               />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="var(--accent)"
-                strokeWidth={2}
-                fill={`url(#${gradientId})`}
-                dot={false}
-                isAnimationActive
-                animationDuration={480}
-                activeDot={{ r: 3, fill: "var(--accent)", stroke: "var(--surface)" }}
-              />
-            </AreaChart>
+              <Bar dataKey="value" fill="var(--chart-1)" maxBarSize={24} radius={[4, 4, 0, 0]} isAnimationActive animationDuration={480} animationEasing="ease-out">
+                <LabelList
+                  dataKey="value"
+                  position="top"
+                  offset={6}
+                  fill="var(--text-muted)"
+                  fontSize={11}
+                  fontFamily="var(--font-mono)"
+                  formatter={(value) => (value === peak && value > 0 ? formatCompactCop(value) : "")}
+                />
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       ) : (
