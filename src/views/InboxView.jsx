@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
 import {
   ArrowRight,
   Check,
-  ChevronRight,
   Circle,
   FilePlus2,
   FileText,
   Globe2,
   Mail,
   MessageCircle,
-  Plus,
   Send,
   UserRound,
 } from "lucide-react";
@@ -20,16 +18,19 @@ import {
   Badge,
   Button,
   EmptyState,
+  InkPanel,
   PageHeader,
   Panel,
   StatusBadge,
   formatCurrency,
   formatDate,
+  formatRelative,
 } from "../components/ui.jsx";
 import { LimitedInput, LimitedTextarea, Select } from "../components/fields.jsx";
 import { LIMITS } from "../limits.js";
 import { duration, ease } from "../motion/presets.js";
 import { StaggerItem } from "../motion/Motion.jsx";
+import AnimatedLink from "../components/motion/AnimatedLink.jsx";
 import PdfDropzone from "../components/inbox/PdfDropzone.jsx";
 
 const channels = [
@@ -97,6 +98,8 @@ export default function InboxView({
   const [clientForm, setClientForm] = useState({ name: "", email: "", company: "" });
   const [clientError, setClientError] = useState("");
   const [stage, setStage] = useState(0);
+  const reduce = useReducedMotion();
+  const lift = reduce ? undefined : { y: -2 };
 
   useEffect(() => {
     setDetail(selectedBrief || null);
@@ -318,76 +321,65 @@ export default function InboxView({
     (a, b) => new Date(b.receivedAt) - new Date(a.receivedAt),
   );
   const isPdfDetail = detail?.source === "PDF";
+  const showSuccess = pipelineReady && !busy && !isProcessing && detail?.proposalId;
 
   return (
     <div>
       <PageHeader
         title="Bandeja"
-        description="Centraliza las solicitudes de cada canal y envíalas al agente para su análisis."
-        actions={
-          <span className="rounded-full border border-line bg-surface px-3 py-1.5 text-[11px] text-muted">
-            {briefs?.length || 0} recibidos en este espacio
-          </span>
-        }
+        description="Pega lo que te mandó el cliente o sube su PDF. El agente hace el resto."
       />
 
-      <div className="grid gap-4 xl:grid-cols-[0.88fr_1.12fr]">
-        <Panel className="overflow-hidden">
-          <div className="flex items-center justify-between border-b border-line px-5 py-4">
+      <div className="grid gap-6 xl:grid-cols-12">
+        <Panel className="overflow-hidden xl:col-span-5">
+          <div className="flex items-center justify-between gap-4 p-6 pb-4">
             <div>
-              <p className="text-sm font-semibold text-fg">Bandeja de entrada</p>
-              <p className="mt-1 text-xs text-faint">Solicitudes guardadas recientemente</p>
+              <h2 className="text-lg font-bold tracking-tight text-fg">Bandeja de entrada</h2>
+              <p className="mt-1 text-sm text-muted">Solicitudes guardadas recientemente</p>
             </div>
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent-soft text-brand">
-              <FilePlus2 size={16} aria-hidden />
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-soft text-brand">
+              <FilePlus2 size={20} aria-hidden />
             </span>
           </div>
-          <div className="max-h-[520px] divide-y divide-line overflow-y-auto">
+          <div className="max-h-[560px] space-y-2 overflow-y-auto p-4">
             {sortedBriefs.map((brief, index) => {
               const selected = String(detail?.id) === String(brief.id);
               const channel = channels.find((item) => item.id === brief.source);
               const Icon = brief.source === "PDF" ? FileText : channel?.icon || FilePlus2;
               return (
-                <StaggerItem key={brief.id} index={index}>
+                <StaggerItem key={brief.id} index={index} whileHover={lift}>
                   <button
                     type="button"
                     onClick={() => selectBrief(brief)}
                     aria-current={selected || undefined}
-                    className={`w-full px-5 py-4 text-left transition-colors duration-200 ${
+                    className={`w-full rounded-xl p-4 text-left transition-colors duration-200 ${
                       selected ? "bg-accent-soft" : "hover:bg-surface-2"
                     }`}
                   >
-                    <div className="flex gap-3">
-                      <span
-                        className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl border ${
-                          selected
-                            ? "border-brand/25 bg-accent-soft text-brand"
-                            : "border-line bg-surface-2 text-muted"
-                        }`}
-                      >
-                        <Icon size={15} aria-hidden />
+                    <div className="flex gap-4">
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-soft text-brand">
+                        <Icon size={19} aria-hidden />
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center justify-between gap-3">
-                          <span className="truncate text-xs font-medium text-fg">Brief {brief.id}</span>
-                          <span className="shrink-0 text-[11px] text-faint">
-                            {formatDate(brief.receivedAt)}
+                          <span className="truncate text-base font-bold text-fg">Brief {brief.id}</span>
+                          <span className="shrink-0 text-xs text-faint">
+                            {formatRelative(brief.receivedAt)}
                           </span>
                         </span>
-                        <span className="mt-1.5 line-clamp-2 block text-xs leading-5 text-muted">
+                        <span className="mt-1.5 line-clamp-2 overflow-hidden break-words text-sm leading-6 text-muted">
                           {brief.rawText || brief.source || "Solicitud recibida"}
                         </span>
-                        <span className="mt-2">
+                        <span className="mt-2 block">
                           {brief.source === "PDF" ? (
                             <Badge tone="accent">
-                              <FileText size={11} aria-hidden /> PDF
+                              <FileText size={12} aria-hidden /> PDF
                             </Badge>
                           ) : (
                             <Badge>{channel?.label || brief.source}</Badge>
                           )}
                         </span>
                       </span>
-                      <ChevronRight size={14} className="mt-2 shrink-0 text-faint" aria-hidden />
                     </div>
                   </button>
                 </StaggerItem>
@@ -397,29 +389,26 @@ export default function InboxView({
               <EmptyState
                 icon={Mail}
                 title="Tu bandeja está vacía"
-                description="Los briefs procesados desde este espacio aparecerán aquí. El backend aún no expone un listado histórico de briefs."
+                description="Cuando proceses tu primer brief, aparecerá en esta lista."
               />
             )}
           </div>
-          <div className="border-t border-line px-5 py-3 text-[11px] leading-5 text-faint">
-            El historial de briefs se mantiene en este navegador. Su consulta directa usa la API del backend.
-          </div>
+          <p className="px-6 py-4 text-xs leading-5 text-faint">
+            El historial de este espacio se guarda en este navegador.
+          </p>
         </Panel>
 
-        <div className="space-y-4">
-          <Panel className="p-5 sm:p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-fg">Nuevo brief</p>
-                <p className="mt-1 text-xs text-faint">Elige cómo llega la solicitud del cliente</p>
-              </div>
-              <span className="font-mono text-[11px] uppercase text-faint">Entrada 01</span>
+        <div className="space-y-6 xl:col-span-7">
+          <Panel className="p-6 sm:p-8">
+            <div className="mb-6">
+              <h2 className="text-lg font-bold tracking-tight text-fg">Nuevo brief</h2>
+              <p className="mt-1 text-sm text-muted">Elige cómo llega la solicitud del cliente</p>
             </div>
 
             <div
               role="tablist"
               aria-label="Modo de entrada del brief"
-              className="mb-5 grid grid-cols-2 gap-1 rounded-lg border border-line bg-surface-2 p-1"
+              className="mb-6 grid h-12 grid-cols-2 gap-1 rounded-full bg-surface-2 p-1"
             >
               {[
                 { id: "typed", label: "Escribir brief" },
@@ -436,15 +425,15 @@ export default function InboxView({
                       setMode(option.id);
                       setError("");
                     }}
-                    className={`relative rounded-md px-3 py-2 text-xs font-medium transition-colors duration-200 ${
-                      active ? "text-fg" : "text-muted hover:text-fg"
+                    className={`relative h-10 rounded-full px-3 text-sm font-semibold transition-colors duration-200 ${
+                      active ? "text-accent-fg" : "text-muted hover:text-fg"
                     }`}
                   >
                     {active && (
                       <motion.span
-                        layoutId="inbox-mode-indicator"
+                        layoutId="inbox-mode-pill"
                         transition={{ duration: duration.state, ease: ease.fluid }}
-                        className="absolute inset-0 rounded-md border border-brand/25 bg-accent-soft"
+                        className="absolute inset-0 rounded-full bg-accent"
                         aria-hidden
                       />
                     )}
@@ -454,320 +443,352 @@ export default function InboxView({
               })}
             </div>
 
-            {mode === "typed" ? (
-              <form onSubmit={submitBrief} className="space-y-4">
-                <div>
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-medium text-muted">Cliente asociado</span>
-                    <button
-                      type="button"
-                      onClick={() => setClientFormOpen((open) => !open)}
-                      className="flex items-center gap-1 text-xs text-brand hover:text-fg"
-                    >
-                      <Plus size={12} aria-hidden /> Crear cliente
-                    </button>
-                  </div>
-                  <Select
-                    aria-label="Cliente asociado"
-                    value={clientId}
-                    onChange={(event) => setClientId(event.target.value)}
-                    required
-                  >
-                    <option value="">Selecciona un cliente</option>
-                    {clients.map((client) => (
-                      <option key={client.id} value={client.id}>
-                        {client.name}
-                        {client.company ? ` · ${client.company}` : ""}
-                      </option>
-                    ))}
-                  </Select>
-                  {!clients.length && (
-                    <p className="mt-2 text-xs text-warning">
-                      Registra un cliente antes de enviar un brief.
-                    </p>
-                  )}
-                </div>
-
-                {clientFormOpen && (
-                  <div className="rounded-xl border border-line bg-surface-2 p-4">
-                    <p className="mb-3 text-xs font-medium text-fg">Nuevo cliente</p>
-                    <div className="space-y-3">
-                      <LimitedInput
-                        label="Nombre completo"
-                        placeholder="Nombre completo"
-                        limit={LIMITS.clientName}
-                        value={clientForm.name}
-                        onChange={(event) => setClientForm({ ...clientForm, name: event.target.value })}
-                      />
-                      <LimitedInput
-                        label="Correo electrónico"
-                        placeholder="Correo electrónico"
-                        type="email"
-                        limit={LIMITS.email}
-                        value={clientForm.email}
-                        onChange={(event) => setClientForm({ ...clientForm, email: event.target.value })}
-                      />
-                      <LimitedInput
-                        label="Empresa (opcional)"
-                        placeholder="Empresa (opcional)"
-                        limit={LIMITS.company}
-                        value={clientForm.company}
-                        onChange={(event) => setClientForm({ ...clientForm, company: event.target.value })}
-                      />
-                      {clientError && (
-                        <p role="alert" className="text-xs text-danger">
-                          {clientError}
-                        </p>
-                      )}
-                      <Button type="button" icon={UserRound} onClick={addClient}>
-                        Guardar cliente
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-3 gap-2">
-                  {channels.map(({ id, label, icon: Icon }) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setSource(id)}
-                      aria-pressed={source === id}
-                      className={`flex items-center justify-center gap-2 rounded-lg border px-2 py-3 text-xs transition-colors duration-200 ${
-                        source === id
-                          ? "border-brand/25 bg-accent-soft text-brand"
-                          : "border-line bg-surface-2 text-muted hover:border-line-strong hover:text-fg"
-                      }`}
-                    >
-                      <Icon size={13} aria-hidden />
-                      <span className="hidden sm:inline">{label}</span>
-                      <span className="sm:hidden">{label === "Formulario web" ? "Web" : label}</span>
-                    </button>
-                  ))}
-                </div>
-
-                {source === "EMAIL" && (
-                  <LimitedInput
-                    label="Asunto del correo"
-                    placeholder="Solicitud de propuesta"
-                    limit={LIMITS.subject}
-                    value={subject}
-                    onChange={(event) => setSubject(event.target.value)}
-                  />
-                )}
-                {source === "WEB_FORM" && (
-                  <LimitedInput
-                    label="Tipo de proyecto"
-                    placeholder="Ej. Sitio web corporativo"
-                    limit={LIMITS.projectType}
-                    value={projectType}
-                    onChange={(event) => setProjectType(event.target.value)}
-                  />
-                )}
-                <LimitedTextarea
-                  label={briefLabel[source]}
-                  placeholder="Cuéntanos qué necesita el cliente, el contexto, alcance o fechas importantes."
-                  limit={LIMITS.briefText}
-                  alwaysShowCounter
-                  rows={5}
-                  required
-                  value={briefText}
-                  onChange={(event) => setBriefText(event.target.value)}
-                />
-                {error && (
-                  <p role="alert" className="rounded-xl border border-danger/25 bg-danger/10 px-3.5 py-3 text-xs leading-5 text-danger">
-                    {error}
-                  </p>
-                )}
-                {message && (
-                  <p role="status" className="rounded-xl border border-success/25 bg-success/10 px-3.5 py-3 text-xs leading-5 text-success">
-                    {message}
-                  </p>
-                )}
-                {pipelineReady && !busy && !isProcessing && (
-                  <Button variant="primary" icon={ArrowRight} onClick={() => onNavigate?.("pipeline")}>
-                    Ver al agente trabajando
-                  </Button>
-                )}
-                <Button
-                  type="submit"
-                  variant="primary"
-                  icon={Send}
-                  loading={busy}
-                  disabled={busy || !clients.length}
-                  className="w-full"
+            <AnimatePresence mode="wait">
+              {mode === "typed" ? (
+                <motion.div
+                  key="typed"
+                  initial={{ opacity: 0, y: reduce ? 0 : 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: reduce ? 0 : -8 }}
+                  transition={{ duration: duration.state, ease: ease.out }}
                 >
-                  {busy ? "El agente está procesando" : "Recibir y procesar brief"}
-                </Button>
-              </form>
-            ) : (
-              <form onSubmit={submitPdf} className="space-y-4">
-                <div>
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-medium text-muted">Cliente asociado</span>
-                    <button
-                      type="button"
-                      onClick={() => setClientFormOpen((open) => !open)}
-                      className="flex items-center gap-1 text-xs text-brand hover:text-fg"
-                    >
-                      <Plus size={12} aria-hidden /> Crear cliente
-                    </button>
-                  </div>
-                  <Select
-                    aria-label="Cliente asociado"
-                    value={clientId}
-                    onChange={(event) => setClientId(event.target.value)}
-                    required
-                  >
-                    <option value="">Selecciona un cliente</option>
-                    {clients.map((client) => (
-                      <option key={client.id} value={client.id}>
-                        {client.name}
-                        {client.company ? ` · ${client.company}` : ""}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-
-                {clientFormOpen && (
-                  <div className="rounded-xl border border-line bg-surface-2 p-4">
-                    <p className="mb-3 text-xs font-medium text-fg">Nuevo cliente</p>
-                    <div className="space-y-3">
-                      <LimitedInput
-                        label="Nombre completo"
-                        placeholder="Nombre completo"
-                        limit={LIMITS.clientName}
-                        value={clientForm.name}
-                        onChange={(event) => setClientForm({ ...clientForm, name: event.target.value })}
-                      />
-                      <LimitedInput
-                        label="Correo electrónico"
-                        placeholder="Correo electrónico"
-                        type="email"
-                        limit={LIMITS.email}
-                        value={clientForm.email}
-                        onChange={(event) => setClientForm({ ...clientForm, email: event.target.value })}
-                      />
-                      <LimitedInput
-                        label="Empresa (opcional)"
-                        placeholder="Empresa (opcional)"
-                        limit={LIMITS.company}
-                        value={clientForm.company}
-                        onChange={(event) => setClientForm({ ...clientForm, company: event.target.value })}
-                      />
-                      {clientError && (
-                        <p role="alert" className="text-xs text-danger">
-                          {clientError}
+                  <form onSubmit={submitBrief} className="space-y-6">
+                    <div>
+                      <div className="mb-2 flex items-center justify-between gap-3">
+                        <label htmlFor="brief-client" className="block text-sm font-semibold text-fg">
+                          Cliente asociado
+                        </label>
+                        <AnimatedLink onClick={() => setClientFormOpen((open) => !open)} className="text-sm">
+                          Crear cliente
+                        </AnimatedLink>
+                      </div>
+                      <Select
+                        id="brief-client"
+                        aria-label="Cliente asociado"
+                        value={clientId}
+                        onChange={(event) => setClientId(event.target.value)}
+                        required
+                      >
+                        <option value="">Selecciona un cliente</option>
+                        {clients.map((client) => (
+                          <option key={client.id} value={client.id}>
+                            {client.name}
+                            {client.company ? ` · ${client.company}` : ""}
+                          </option>
+                        ))}
+                      </Select>
+                      {!clients.length && (
+                        <p className="mt-2 text-sm text-warning">
+                          Registra un cliente antes de enviar un brief.
                         </p>
                       )}
-                      <Button type="button" icon={UserRound} onClick={addClient}>
-                        Guardar cliente
-                      </Button>
                     </div>
-                  </div>
-                )}
 
-                <PdfDropzone
-                  file={pdfFile}
-                  onFileChange={setPdfFile}
-                  onReject={handlePdfReject}
-                  disabled={busy}
-                />
-
-                <LimitedTextarea
-                  label="Nota opcional"
-                  placeholder="Contexto adicional sobre este PDF, si hace falta."
-                  limit={LIMITS.pdfNote}
-                  rows={3}
-                  value={pdfNote}
-                  onChange={(event) => setPdfNote(event.target.value)}
-                />
-
-                {busy && (
-                  <div
-                    role="progressbar"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={Math.round(uploadProgress * 100)}
-                    aria-label="Progreso de subida del PDF"
-                    className="h-1.5 overflow-hidden rounded-full bg-surface-2"
-                  >
-                    <div
-                      className="h-full w-full origin-left rounded-full bg-accent"
-                      style={{ transform: `scaleX(${uploadProgress})` }}
-                    />
-                  </div>
-                )}
-
-                {pdfResult && (
-                  <div role="status" className="rounded-xl border border-line bg-surface-2 px-3.5 py-3 text-xs leading-5 text-muted">
-                    <p className="font-medium text-fg">
-                      {pdfResult.fileName || "PDF"} · {pdfResult.pages ?? 0} páginas
-                    </p>
-                    {pdfResult.truncated && (
-                      <p className="mt-1">Se usaron los primeros 20.000 caracteres del PDF.</p>
+                    {clientFormOpen && (
+                      <div className="rounded-xl bg-surface-2 p-5">
+                        <p className="mb-4 text-sm font-semibold text-fg">Nuevo cliente</p>
+                        <div className="space-y-4">
+                          <LimitedInput
+                            label="Nombre completo"
+                            placeholder="Nombre completo"
+                            limit={LIMITS.clientName}
+                            value={clientForm.name}
+                            onChange={(event) => setClientForm({ ...clientForm, name: event.target.value })}
+                          />
+                          <LimitedInput
+                            label="Correo electrónico"
+                            placeholder="Correo electrónico"
+                            type="email"
+                            limit={LIMITS.email}
+                            value={clientForm.email}
+                            onChange={(event) => setClientForm({ ...clientForm, email: event.target.value })}
+                          />
+                          <LimitedInput
+                            label="Empresa (opcional)"
+                            placeholder="Empresa (opcional)"
+                            limit={LIMITS.company}
+                            value={clientForm.company}
+                            onChange={(event) => setClientForm({ ...clientForm, company: event.target.value })}
+                          />
+                          {clientError && (
+                            <p role="alert" className="text-sm text-danger">
+                              {clientError}
+                            </p>
+                          )}
+                          <Button type="button" icon={UserRound} onClick={addClient}>
+                            Guardar cliente
+                          </Button>
+                        </div>
+                      </div>
                     )}
-                    {!!pdfResult.unreadablePages?.length && (
-                      <p className="mt-1">
-                        Páginas sin texto legible: {pdfResult.unreadablePages.join(", ")}. Pueden estar
-                        escaneadas.
+
+                    <div className="grid grid-cols-3 gap-2">
+                      {channels.map(({ id, label, icon: Icon }) => (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => setSource(id)}
+                          aria-pressed={source === id}
+                          className={`flex items-center justify-center gap-2 rounded-full border px-3 py-3 text-sm font-semibold transition-colors duration-200 ${
+                            source === id
+                              ? "border-transparent bg-accent text-accent-fg"
+                              : "border-line-strong text-muted hover:border-brand hover:text-fg"
+                          }`}
+                        >
+                          <Icon size={16} aria-hidden />
+                          <span className="hidden sm:inline">{label}</span>
+                          <span className="sm:hidden">{label === "Formulario web" ? "Web" : label}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {source === "EMAIL" && (
+                      <LimitedInput
+                        label="Asunto del correo"
+                        placeholder="Solicitud de propuesta"
+                        limit={LIMITS.subject}
+                        value={subject}
+                        onChange={(event) => setSubject(event.target.value)}
+                      />
+                    )}
+                    {source === "WEB_FORM" && (
+                      <LimitedInput
+                        label="Tipo de proyecto"
+                        placeholder="Ej. Sitio web corporativo"
+                        limit={LIMITS.projectType}
+                        value={projectType}
+                        onChange={(event) => setProjectType(event.target.value)}
+                      />
+                    )}
+                    <LimitedTextarea
+                      label={briefLabel[source]}
+                      placeholder="Cuéntanos qué necesita el cliente, el contexto, alcance o fechas importantes."
+                      limit={LIMITS.briefText}
+                      alwaysShowCounter
+                      rows={8}
+                      required
+                      value={briefText}
+                      onChange={(event) => setBriefText(event.target.value)}
+                    />
+                    {error && (
+                      <p role="alert" className="rounded-xl bg-danger/10 px-4 py-3 text-sm leading-6 text-danger">
+                        {error}
                       </p>
                     )}
-                  </div>
-                )}
-
-                {error && (
-                  <p role="alert" className="rounded-xl border border-danger/25 bg-danger/10 px-3.5 py-3 text-xs leading-5 text-danger">
-                    {error}
-                  </p>
-                )}
-                {message && (
-                  <p role="status" className="rounded-xl border border-success/25 bg-success/10 px-3.5 py-3 text-xs leading-5 text-success">
-                    {message}
-                  </p>
-                )}
-                {pipelineReady && !busy && !isProcessing && (
-                  <Button variant="primary" icon={ArrowRight} onClick={() => onNavigate?.("pipeline")}>
-                    Ver al agente trabajando
-                  </Button>
-                )}
-                <Button
-                  type="submit"
-                  variant="primary"
-                  icon={Send}
-                  loading={busy}
-                  disabled={busy || !clients.length || !pdfFile}
-                  className="w-full"
+                    {message && (
+                      <p role="status" className="rounded-xl bg-success/10 px-4 py-3 text-sm leading-6 text-success">
+                        {message}
+                      </p>
+                    )}
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="lg"
+                      icon={Send}
+                      loading={busy}
+                      disabled={busy || !clients.length}
+                      className="w-full"
+                    >
+                      {busy ? "El agente está procesando" : "Procesar brief"}
+                    </Button>
+                  </form>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="pdf"
+                  initial={{ opacity: 0, y: reduce ? 0 : 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: reduce ? 0 : -8 }}
+                  transition={{ duration: duration.state, ease: ease.out }}
                 >
-                  {busy ? "Subiendo y procesando" : "Subir y procesar"}
-                </Button>
-              </form>
-            )}
+                  <form onSubmit={submitPdf} className="space-y-6">
+                    <div>
+                      <div className="mb-2 flex items-center justify-between gap-3">
+                        <label htmlFor="pdf-client" className="block text-sm font-semibold text-fg">
+                          Cliente asociado
+                        </label>
+                        <AnimatedLink onClick={() => setClientFormOpen((open) => !open)} className="text-sm">
+                          Crear cliente
+                        </AnimatedLink>
+                      </div>
+                      <Select
+                        id="pdf-client"
+                        aria-label="Cliente asociado"
+                        value={clientId}
+                        onChange={(event) => setClientId(event.target.value)}
+                        required
+                      >
+                        <option value="">Selecciona un cliente</option>
+                        {clients.map((client) => (
+                          <option key={client.id} value={client.id}>
+                            {client.name}
+                            {client.company ? ` · ${client.company}` : ""}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+
+                    {clientFormOpen && (
+                      <div className="rounded-xl bg-surface-2 p-5">
+                        <p className="mb-4 text-sm font-semibold text-fg">Nuevo cliente</p>
+                        <div className="space-y-4">
+                          <LimitedInput
+                            label="Nombre completo"
+                            placeholder="Nombre completo"
+                            limit={LIMITS.clientName}
+                            value={clientForm.name}
+                            onChange={(event) => setClientForm({ ...clientForm, name: event.target.value })}
+                          />
+                          <LimitedInput
+                            label="Correo electrónico"
+                            placeholder="Correo electrónico"
+                            type="email"
+                            limit={LIMITS.email}
+                            value={clientForm.email}
+                            onChange={(event) => setClientForm({ ...clientForm, email: event.target.value })}
+                          />
+                          <LimitedInput
+                            label="Empresa (opcional)"
+                            placeholder="Empresa (opcional)"
+                            limit={LIMITS.company}
+                            value={clientForm.company}
+                            onChange={(event) => setClientForm({ ...clientForm, company: event.target.value })}
+                          />
+                          {clientError && (
+                            <p role="alert" className="text-sm text-danger">
+                              {clientError}
+                            </p>
+                          )}
+                          <Button type="button" icon={UserRound} onClick={addClient}>
+                            Guardar cliente
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    <PdfDropzone
+                      file={pdfFile}
+                      onFileChange={setPdfFile}
+                      onReject={handlePdfReject}
+                      disabled={busy}
+                    />
+
+                    <LimitedTextarea
+                      label="Nota opcional"
+                      placeholder="Contexto adicional sobre este PDF, si hace falta."
+                      limit={LIMITS.pdfNote}
+                      rows={3}
+                      value={pdfNote}
+                      onChange={(event) => setPdfNote(event.target.value)}
+                    />
+
+                    {busy && (
+                      <div
+                        role="progressbar"
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={Math.round(uploadProgress * 100)}
+                        aria-label="Progreso de subida del PDF"
+                        className="h-2.5 overflow-hidden rounded-full bg-surface-2"
+                      >
+                        <div
+                          className="h-full w-full origin-left rounded-full bg-accent"
+                          style={{ transform: `scaleX(${uploadProgress})` }}
+                        />
+                      </div>
+                    )}
+
+                    {pdfResult && (
+                      <div role="status" className="rounded-xl bg-surface-2 px-4 py-3 text-sm leading-6 text-muted">
+                        <p className="font-semibold text-fg">
+                          {pdfResult.fileName || "PDF"} · {pdfResult.pages ?? 0} páginas
+                        </p>
+                        {pdfResult.truncated && (
+                          <p className="mt-1">Se usaron los primeros 20.000 caracteres del PDF.</p>
+                        )}
+                        {!!pdfResult.unreadablePages?.length && (
+                          <p className="mt-1">
+                            Páginas sin texto legible: {pdfResult.unreadablePages.join(", ")}. Pueden estar
+                            escaneadas.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {error && (
+                      <p role="alert" className="rounded-xl bg-danger/10 px-4 py-3 text-sm leading-6 text-danger">
+                        {error}
+                      </p>
+                    )}
+                    {message && (
+                      <p role="status" className="rounded-xl bg-success/10 px-4 py-3 text-sm leading-6 text-success">
+                        {message}
+                      </p>
+                    )}
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="lg"
+                      icon={Send}
+                      loading={busy}
+                      disabled={busy || !clients.length || !pdfFile}
+                      className="w-full"
+                    >
+                      {busy ? "Subiendo y procesando" : "Procesar brief"}
+                    </Button>
+                  </form>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Panel>
+
+          {showSuccess && (
+            <InkPanel className="p-6 sm:p-8">
+              <p role="status" className="display text-4xl leading-none text-ink-fg">
+                Propuesta #{detail.proposalId} lista
+              </p>
+              <p className="mt-3 text-base text-ink-text/80">
+                El agente armó la cotización. Revísala con el cliente.
+              </p>
+              {proposalDetail?.total != null && (
+                <p className="display mt-4 text-5xl leading-none text-ink-fg">
+                  {formatCurrency(proposalDetail.total)}
+                </p>
+              )}
+              <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+                <Button variant="primary" icon={ArrowRight} onClick={() => onNavigate?.("pipeline")}>
+                  Ver al agente trabajando
+                </Button>
+                <AnimatedLink onClick={() => onNavigate?.("proposals")} className="text-ink-fg! text-base">
+                  Abrir propuestas
+                </AnimatedLink>
+              </div>
+            </InkPanel>
+          )}
 
           {isProcessing && (
             <Panel className="overflow-hidden">
-              <div className="flex items-center gap-3 border-b border-line px-5 py-4">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-accent-soft text-brand">
-                  <Circle size={12} fill="currentColor" aria-hidden />
+              <div className="flex items-center gap-4 border-b border-line px-6 py-5">
+                <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-soft text-brand">
+                  <Circle size={14} fill="currentColor" aria-hidden />
                 </span>
                 <div>
-                  <p className="text-xs font-medium text-fg">Análisis en curso</p>
-                  <p className="mt-1 text-[11px] text-faint">Vista de progreso mientras responde el backend</p>
+                  <h2 className="text-lg font-bold tracking-tight text-fg">Análisis en curso</h2>
+                  <p className="mt-0.5 text-sm text-muted">Progreso en vivo del análisis</p>
                 </div>
               </div>
-              <div className="space-y-3 px-5 py-4">
+              <div role="status" className="space-y-4 px-6 py-5">
                 {intakeStages.slice(0, stage + 1).map((label, index) => (
-                  <div key={label} className="flex items-center gap-2.5 text-xs">
+                  <div key={label} className="flex items-center gap-3 text-sm">
                     <span className={index < stage ? "text-success" : "text-brand"}>
                       {index < stage ? (
-                        <Check size={13} aria-hidden />
+                        <Check size={15} aria-hidden />
                       ) : (
-                        <span className="block h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden />
+                        <span className="block h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
                       )}
                     </span>
-                    <span className={index === stage ? "text-fg" : "text-muted"}>{label}</span>
-                    {index === stage && <ArrowRight className="ml-auto text-brand" size={13} aria-hidden />}
+                    <span className={index === stage ? "font-semibold text-fg" : "text-muted"}>{label}</span>
+                    {index === stage && <ArrowRight className="ml-auto text-brand" size={15} aria-hidden />}
                   </div>
                 ))}
               </div>
@@ -776,10 +797,10 @@ export default function InboxView({
 
           {detail && !isProcessing && (
             <Panel className="overflow-hidden">
-              <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
+              <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
                 <div>
-                  <p className="text-sm font-semibold text-fg">Detalle del brief {detail.id}</p>
-                  <p className="mt-1 text-xs text-faint">
+                  <h2 className="text-lg font-bold tracking-tight text-fg">Detalle del brief {detail.id}</h2>
+                  <p className="mt-1 text-sm text-muted">
                     {channelLabel(detail.source)} · {formatDate(detail.receivedAt)}
                   </p>
                 </div>
@@ -792,23 +813,23 @@ export default function InboxView({
                   )}
                 </div>
               </div>
-              <div className="space-y-4 p-5">
+              <div className="space-y-6 p-6">
                 {pdfOpenError && (
-                  <p role="alert" className="text-xs text-danger">
+                  <p role="alert" className="text-sm text-danger">
                     {pdfOpenError}
                   </p>
                 )}
                 <div>
-                  <p className="mb-2 text-[11px] font-semibold uppercase text-faint">Entrada original</p>
-                  <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-line bg-surface-2 p-3.5 font-sans text-xs leading-5 text-fg">
+                  <p className="mb-2 text-sm font-semibold text-fg">Entrada original</p>
+                  <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-surface-2 p-4 font-sans text-sm leading-6 text-fg">
                     {detail.rawText || "Texto original no disponible."}
                   </pre>
                 </div>
                 {!!proposalDetail?.items?.length && (
                   <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <p className="text-[11px] font-semibold uppercase text-faint">Requisitos cotizados</p>
-                      <span className="font-mono text-[11px] text-faint">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <p className="text-sm font-semibold text-fg">Requisitos cotizados</p>
+                      <span className="font-mono text-xs text-faint">
                         {proposalDetail.items.length} ítems · propuesta {proposalDetail.id}
                       </span>
                     </div>
@@ -816,15 +837,15 @@ export default function InboxView({
                       {proposalDetail.items.map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-start justify-between gap-4 rounded-xl border border-line bg-surface-2 px-3.5 py-3"
+                          className="flex items-start justify-between gap-4 rounded-xl bg-surface-2 px-4 py-3"
                         >
-                          <div className="flex min-w-0 gap-2.5">
-                            <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md bg-accent-soft font-mono text-[10px] text-brand">
+                          <div className="flex min-w-0 gap-3">
+                            <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft font-mono text-xs text-brand">
                               {item.requirementId}
                             </span>
-                            <p className="text-xs leading-5 text-fg">{item.description}</p>
+                            <p className="text-sm leading-6 text-fg">{item.description}</p>
                           </div>
-                          <span className="shrink-0 text-right font-mono text-[11px] leading-4 text-faint">
+                          <span className="shrink-0 text-right font-mono text-xs leading-5 text-faint">
                             {item.hours} h<br />
                             <span className="text-warning">{formatCurrency(item.lineTotal)}</span>
                           </span>
@@ -834,16 +855,16 @@ export default function InboxView({
                   </div>
                 )}
                 {proposalDetailError && (
-                  <p className="text-xs text-danger">
+                  <p role="alert" className="text-sm text-danger">
                     No fue posible cargar el alcance cotizado: {proposalDetailError}
                   </p>
                 )}
                 {!!detail.questions?.length && (
                   <div>
-                    <p className="mb-2 text-[11px] font-semibold uppercase text-faint">
+                    <p className="mb-2 text-sm font-semibold text-fg">
                       Aclaraciones del agente
                     </p>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {detail.questions.map((question) => (
                         <QuestionCard
                           key={question.id}
@@ -856,27 +877,10 @@ export default function InboxView({
                   </div>
                 )}
                 {detail.proposalId && (
-                  <p className="flex items-center gap-2 text-xs text-success">
-                    <Check size={13} aria-hidden /> Propuesta {detail.proposalId} vinculada al brief{" "}
-                    <ArrowRight size={12} aria-hidden />
+                  <p role="status" className="flex items-center gap-2 text-sm font-semibold text-success">
+                    <Check size={15} aria-hidden /> Propuesta {detail.proposalId} vinculada al brief{" "}
+                    <ArrowRight size={14} aria-hidden />
                   </p>
-                )}
-                {pipelineReady && (
-                  <Button variant="primary" icon={ArrowRight} onClick={() => onNavigate?.("pipeline")}>
-                    Ver al agente trabajando
-                  </Button>
-                )}
-                {detail.rawPayload && (
-                  <details className="group">
-                    <summary className="cursor-pointer text-xs text-muted transition-colors hover:text-fg">
-                      Ver payload original del canal
-                    </summary>
-                    <pre className="mt-2 max-h-32 overflow-auto rounded-xl border border-line bg-surface-2 p-3 font-mono text-[11px] leading-4 text-muted">
-                      {typeof detail.rawPayload === "string"
-                        ? detail.rawPayload
-                        : JSON.stringify(detail.rawPayload, null, 2)}
-                    </pre>
-                  </details>
                 )}
               </div>
             </Panel>
@@ -892,15 +896,15 @@ function QuestionCard({ question, disabled, onAnswer }) {
   const isResolved = question.status === "RESOLVED";
 
   return (
-    <div className="rounded-xl border border-line bg-surface-2 p-3.5">
-      <div className="flex items-start gap-2.5">
-        <span className="mt-0.5 text-warning" aria-hidden>
-          <Circle size={11} fill={question.blocking ? "currentColor" : "none"} />
+    <div className="rounded-xl bg-surface-2 p-5">
+      <div className="flex items-start gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-warning/12 text-warning" aria-hidden>
+          <Circle size={14} fill={question.blocking ? "currentColor" : "none"} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-xs leading-5 text-fg">{question.question}</p>
+          <p className="text-base font-semibold leading-6 text-fg">{question.question}</p>
           {isResolved ? (
-            <p className="mt-2 text-xs text-success">Respuesta: {question.answer}</p>
+            <p role="status" className="mt-2 text-sm text-success">Respuesta: {question.answer}</p>
           ) : (
             <form
               onSubmit={(event) => {
@@ -908,7 +912,7 @@ function QuestionCard({ question, disabled, onAnswer }) {
                 onAnswer(answer);
                 setAnswer("");
               }}
-              className="mt-3 space-y-2"
+              className="mt-4 space-y-3"
             >
               <LimitedTextarea
                 label="Tu respuesta"
@@ -920,7 +924,7 @@ function QuestionCard({ question, disabled, onAnswer }) {
                 onChange={(event) => setAnswer(event.target.value)}
               />
               <div className="flex justify-end">
-                <Button type="submit" size="sm" icon={Send} disabled={disabled} aria-label="Enviar respuesta">
+                <Button type="submit" variant="secondary" icon={Send} disabled={disabled} aria-label="Enviar respuesta">
                   Responder
                 </Button>
               </div>

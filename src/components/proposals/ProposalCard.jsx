@@ -8,7 +8,7 @@ export function ProposalCard({ proposal, onClick, layoutId, selected = false }) 
     <motion.article
       layoutId={layoutId}
       onClick={onClick}
-      className={`group block w-full cursor-pointer rounded-xl bg-surface p-5 text-left shadow-card transition-shadow duration-300 hover:shadow-lift ${
+      className={`group block w-full cursor-pointer rounded-xl bg-surface p-4 text-left shadow-card transition-shadow duration-300 hover:shadow-lift ${
         selected ? "ring-2 ring-brand" : ""
       }`}
       layout
@@ -19,15 +19,16 @@ export function ProposalCard({ proposal, onClick, layoutId, selected = false }) 
       role="button"
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="tabular text-sm font-semibold text-fg">#{proposal.id}</p>
-          <p className="mt-1 text-sm text-muted">Propuesta</p>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold text-fg">#{proposal.id}</p>
+          <span className="text-xs text-faint">{formatRelative(proposal.createdAt)}</span>
         </div>
-        <StatusBadge status={proposal.status} />
+        <p className="display mt-3 block truncate text-[1.65rem] leading-none tabular-nums" title={formatCurrency(proposal.total)}>
+          {formatCurrency(proposal.total)}
+        </p>
+        <StatusBadge status={proposal.status} className="mt-3" />
       </div>
-      <p className="display tabular mt-5 text-3xl text-fg">{formatCurrency(proposal.total)}</p>
-      <p className="mt-4 text-sm text-faint">Creada {formatRelative(proposal.createdAt)}</p>
     </motion.article>
   );
 }

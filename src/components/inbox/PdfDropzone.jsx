@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { FileText, Upload, X } from "lucide-react";
 import { PDF_LIMITS } from "../../limits.js";
 import { duration, ease } from "../../motion/presets.js";
+import { IconButton } from "../ui.jsx";
 
 const maxMb = Math.round(PDF_LIMITS.maxBytes / (1024 * 1024));
 
@@ -70,15 +71,15 @@ export default function PdfDropzone({ file, onFileChange, onReject, disabled = f
             if (disabled) return;
             validateAndEmit(event.dataTransfer?.files?.[0]);
           }}
-          className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-6 py-8 text-center outline-none transition-colors duration-200 focus-visible:ring-3 focus-visible:ring-accent-soft ${
-            dragOver ? "border-brand bg-accent-soft" : "border-line-strong bg-surface-2 hover:border-brand"
-          } ${disabled ? "cursor-not-allowed opacity-55" : ""}`}
+          className={`flex min-h-56 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-10 text-center outline-none transition-colors duration-200 focus-visible:ring-4 focus-visible:ring-accent-soft ${
+            dragOver ? "border-brand bg-accent-soft" : "border-line-strong bg-surface hover:border-brand"
+          } ${disabled ? "cursor-not-allowed opacity-55" : "cursor-pointer"}`}
         >
-          <span className="grid h-11 w-11 place-items-center rounded-xl border border-line bg-surface text-muted">
-            <Upload size={20} strokeWidth={1.6} aria-hidden />
+          <span className="grid h-14 w-14 place-items-center rounded-full bg-accent-soft text-brand">
+            <Upload size={24} strokeWidth={1.8} aria-hidden />
           </span>
-          <p className="text-sm font-medium text-fg">Arrastra tu PDF aquí o pulsa para elegirlo</p>
-          <p className="text-xs text-faint">Solo PDF, hasta {maxMb} MB y 30 páginas</p>
+          <p className="text-xl font-bold tracking-tight text-fg">Suelta el PDF aquí</p>
+          <p className="text-sm text-muted">o pulsa para elegirlo. Solo PDF, hasta {maxMb} MB y 30 páginas</p>
         </div>
       </motion.div>
       <input
@@ -88,6 +89,7 @@ export default function PdfDropzone({ file, onFileChange, onReject, disabled = f
         className="sr-only"
         tabIndex={-1}
         disabled={disabled}
+        aria-hidden
         onChange={(event) => {
           validateAndEmit(event.target.files?.[0]);
           event.target.value = "";
@@ -98,24 +100,16 @@ export default function PdfDropzone({ file, onFileChange, onReject, disabled = f
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: duration.state, ease: ease.out }}
-          className="mt-3 flex items-center gap-3 rounded-xl border border-line bg-surface-2 px-3.5 py-3"
+          className="mt-3 flex items-center gap-3 rounded-xl bg-surface-2 px-4 py-3"
         >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-brand">
-            <FileText size={16} aria-hidden />
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-soft text-brand">
+            <FileText size={18} aria-hidden />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-xs font-medium text-fg">{file.name}</span>
-            <span className="mt-0.5 block font-mono text-[11px] text-faint">{formatMb(file.size)}</span>
+            <span className="block truncate text-sm font-semibold text-fg">{file.name}</span>
+            <span className="mt-0.5 block font-mono text-xs text-faint">{formatMb(file.size)}</span>
           </span>
-          <button
-            type="button"
-            onClick={() => onFileChange?.(null)}
-            disabled={disabled}
-            aria-label="Quitar archivo"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted transition-colors duration-200 hover:bg-surface hover:text-fg disabled:opacity-50"
-          >
-            <X size={14} aria-hidden />
-          </button>
+          <IconButton icon={X} label="Quitar archivo" disabled={disabled} onClick={() => onFileChange?.(null)} />
         </motion.div>
       )}
     </div>

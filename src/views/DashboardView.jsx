@@ -113,7 +113,7 @@ export default function DashboardView({
         <DashboardSkeleton />
       ) : (
         <>
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-5">
             <StaggerItem index={0} className="sm:col-span-2 xl:col-span-2" whileHover={lift}>
               <KpiTile
                 icon={FileText}

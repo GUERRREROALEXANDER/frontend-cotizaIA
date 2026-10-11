@@ -150,7 +150,7 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
           icon={theme === "dark" ? Sun : Moon}
           label={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
           onClick={onToggleTheme}
-          className="lg:text-ink-text/70 lg:hover:bg-ink-2 lg:hover:text-ink-fg"
+          className="text-ink-text hover:bg-ink-2 hover:text-ink-fg"
         />
       </div>
 

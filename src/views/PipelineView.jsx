@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useReducedMotion } from "framer-motion";
-import { Activity, ListChecks, Search } from "lucide-react";
+import { ListChecks, Search } from "lucide-react";
 import { get } from "../api.js";
 import AgentCity from "../components/AgentCity.jsx";
 import { LimitedInput } from "../components/fields.jsx";
 import { StageStepper } from "../components/pipeline/StageStepper.jsx";
 import { agentStages, executionDurationMs, formatDuration, isFlagged, stepsByHandler } from "../components/pipeline/stages.js";
-import { Button, EmptyState, Panel, SectionHeading, StatusBadge, formatDateTime } from "../components/ui.jsx";
+import { Button, EmptyState, InkPanel, Panel, SectionHeading, StatusBadge, formatDateTime } from "../components/ui.jsx";
+import { MaskedText } from "../motion/Motion.jsx";
 
 const LAST_STAGE = agentStages.length - 1;
 
@@ -30,12 +31,8 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
 
   const executionSteps = execution?.steps || [];
   const isLive = loading || isProcessing || execution?.status === "RUNNING";
-  // Only a fresh run without verified steps gets the illustrative stepper; a
-  // real RUNNING execution with steps is driven by API data alone.
   const illustrative = loading || isProcessing || (execution?.status === "RUNNING" && executionSteps.length === 0);
 
-  // Illustrative progress: while the agent runs, the stepper lights up in
-  // order. Real API steps always override the simulation.
   useEffect(() => {
     if (!illustrative) return undefined;
     const timer = window.setInterval(() => setSimulationStep((current) => Math.min(current + 1, LAST_STAGE)), 1600);
@@ -47,7 +44,6 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
     return agentStages.map((stage) => ({ ...stage, result: byHandler.get(stage.handler.toLowerCase()) || null }));
   }, [executionSteps]);
 
-  // Keep the search field pointing at the brief whose execution is on screen.
   useEffect(() => {
     if (execution?.briefId != null) setBriefId(String(execution.briefId));
   }, [execution?.briefId]);
@@ -82,54 +78,26 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
 
   return (
     <div>
-      <SectionHeading
-        title="El agente, paso a paso."
-        description="Observa el recorrido de cada brief y revisa el registro real de la ejecución."
-        action={
-          <form onSubmit={loadTimeline} className="flex w-full items-end gap-2 sm:w-auto">
-            <LimitedInput
-              label="ID del brief"
-              limit={12}
-              inputMode="numeric"
-              placeholder="4"
-              value={briefId}
-              onChange={(event) => setBriefId(event.target.value.replace(/\D/g, ""))}
-              className="w-full sm:w-36"
-              fieldClassName="w-full font-mono sm:w-28"
-            />
-            <Button type="submit" variant="primary" icon={Search} loading={loading}>
-              Buscar
-            </Button>
-          </form>
-        }
-      />
-
-      {loadError && (
-        <Panel role="alert" className="mb-4 border-danger/30 bg-danger/5 px-4 py-3">
-          <p className="text-xs text-danger">{loadError}</p>
-        </Panel>
-      )}
-
-      <Panel className="mb-4 p-5">
-        <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
+      <InkPanel className="p-8">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
+            <MaskedText as="h1" text="El agente, paso a paso" className="display block text-[clamp(2.25rem,4vw,3.5rem)] text-ink-fg" />
+            <div className="mt-3 flex flex-wrap items-center gap-3">
               <StatusBadge status={execution?.status || (isLive ? "RUNNING" : "PENDING")} />
-              <span className="font-mono text-[13px] text-fg">
+              <span className="font-mono text-[15px] text-ink-text/90">
                 {execution?.briefId != null ? `Brief #${execution.briefId}` : "Sin brief"}
               </span>
-              {execution?.id != null && <span className="font-mono text-[11px] text-faint">Ejecución #{execution.id}</span>}
             </div>
-            <p className="mt-2 max-w-[68ch] text-xs text-muted">
-              Siete handlers encadenados. Cada etapa deja evidencia verificable en la API.
+            <p className="mt-2 max-w-[68ch] text-sm text-ink-text/70">
+              Siete etapas encadenadas. Cada etapa deja su evidencia en el registro.
             </p>
             {execution?.errorMessage && (
-              <p role="alert" className="mt-2 max-w-[68ch] text-xs text-danger">
+              <p role="alert" className="mt-2 max-w-[68ch] text-sm text-accent">
                 {execution.errorMessage}
               </p>
             )}
           </div>
-          <dl className="flex flex-wrap gap-x-8 gap-y-3">
+          <dl className="flex flex-wrap items-end gap-x-8 gap-y-3 text-right">
             <Meta label="Inicio" value={formatDateTime(execution?.startedAt)} />
             <Meta
               label="Fin"
@@ -137,23 +105,51 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
                 execution?.finishedAt
                   ? formatDateTime(execution.finishedAt)
                   : execution
-                    ? isLive
-                      ? "En curso"
-                      : "Sin fecha"
+                  ? isLive
+                    ? "En curso"
                     : "Sin fecha"
+                  : "Sin fecha"
               }
             />
-            <Meta label="Duración" value={formatDuration(totalMs) || (isLive ? "En curso" : "Sin datos")} mono />
+            <Meta
+              label="Duración total"
+              value={
+                <span className="display text-[clamp(2rem,4vw,3rem)] text-ink-fg tabular font-mono">
+                  {formatDuration(totalMs) || (isLive ? "En curso" : "Sin datos")}
+                </span>
+              }
+            />
           </dl>
         </div>
-      </Panel>
+        <form onSubmit={loadTimeline} className="mt-6 flex flex-wrap items-end gap-2">
+          <LimitedInput
+            label="ID del brief"
+            limit={12}
+            inputMode="numeric"
+            placeholder="4"
+            value={briefId}
+            onChange={(event) => setBriefId(event.target.value.replace(/\D/g, ""))}
+            className="w-full sm:w-40"
+            fieldClassName="w-full font-mono sm:w-32"
+          />
+          <Button type="submit" variant="primary" icon={Search} loading={loading}>
+            Buscar
+          </Button>
+        </form>
+      </InkPanel>
+
+      {loadError && (
+        <Panel role="alert" className="mb-4 border-danger/30 bg-danger/5 px-4 py-3">
+          <p className="text-sm text-danger">{loadError}</p>
+        </Panel>
+      )}
 
       <div className="grid gap-4 xl:grid-cols-12">
-        <Panel className="p-5 sm:p-6 xl:col-span-5">
+        <Panel className="p-6 xl:col-span-5">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="text-sm font-semibold text-fg">Cadena de procesamiento</h2>
-              <p className="mt-0.5 text-xs text-muted">Responsabilidad encadenada, evidencia por etapa</p>
+              <h2 className="text-lg font-bold tracking-tight text-fg">Cadena de procesamiento</h2>
+              <p className="mt-0.5 text-sm text-muted">Responsabilidad encadenada, evidencia por etapa</p>
             </div>
             <span className="rounded-full border border-brand/25 bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-brand">
               Agente IA
@@ -171,20 +167,20 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
             />
           ) : (
             <EmptyState
-              icon={execution ? ListChecks : Activity}
+              icon={execution ? ListChecks : Search}
               title={execution ? "Sin pasos registrados" : "Aún no hay ejecuciones"}
               description={
                 execution
-                  ? "El backend devolvió la ejecución pero todavía sin etapas. Vuelve a consultar en unos segundos."
+                  ? "La ejecución llegó sin etapas. Vuelve a consultar en unos segundos."
                   : "Procesa un brief desde Bandeja para que el agente recorra las siete etapas, o busca un ID de brief en el formulario superior."
               }
             />
           )}
 
           {illustrative && (
-            <p className="mt-4 flex items-center gap-2 border-t border-line pt-3 text-[11px] text-muted">
+            <p className="mt-4 flex items-center gap-2 border-t border-line pt-3 text-sm text-muted">
               <span className="motion-safe:h-1.5 motion-safe:w-1.5 motion-safe:animate-pulse motion-safe:rounded-full bg-accent" aria-hidden="true" />
-              Progreso ilustrativo. Los pasos verificados aparecen al responder la API.
+              Progreso ilustrativo. Los pasos confirmados aparecen en cuanto el análisis responde.
             </p>
           )}
         </Panel>

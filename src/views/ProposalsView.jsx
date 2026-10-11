@@ -192,10 +192,10 @@ export default function ProposalsView({ proposals, onRefresh, focusProposalId, o
           <StaggerItem
             key={stat.id}
             index={index}
-            className="flex items-center justify-between gap-4 rounded-full bg-surface px-5 py-3 shadow-card"
+            className="rounded-full bg-surface px-6 py-4 shadow-card"
           >
-            <span className="text-sm font-medium text-muted">{stat.label}</span>
-            <span className="display tabular text-[28px] text-fg">
+            <span className="whitespace-nowrap text-sm text-muted">{stat.label}</span>
+            <span className="display whitespace-nowrap text-2xl tabular-nums">
               <CountUp value={stat.value} format={stat.format} />
             </span>
           </StaggerItem>

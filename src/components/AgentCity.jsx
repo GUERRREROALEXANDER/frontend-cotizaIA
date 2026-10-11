@@ -8,50 +8,45 @@ const neighborhoods = [
   { id: "proposals", label: "Revisión", icon: FileText, count: "04", tone: "bg-success/12 text-success" },
 ];
 
-// Container and ground read from the theme tokens, so the district flips with
-// dark and light. Building fills stay illustrative.
-const cityBackground =
-  "radial-gradient(ellipse at 12% 0%, var(--accent-soft), transparent 46%), linear-gradient(165deg, var(--surface) 0%, var(--surface-2) 100%)";
-
 function Building({ x, y, width, height, depth = 14, front, side, roof, windows = 3 }) {
   return (
     <g transform={`translate(${x} ${y})`}>
-      <ellipse cx={width / 2 + depth * 0.75} cy={height + 3} rx={width * 0.68} ry="7" fill="#374151" opacity=".12" />
+      <ellipse cx={width / 2 + depth * 0.75} cy={height + 3} rx={width * 0.68} ry="7" fill="var(--ink)" opacity=".08" />
       <path d={`M0 0H${width}V${height}H0Z`} fill={front} />
       <path d={`M${width} 0L${width + depth} -${depth * 0.58}V${height - depth * 0.58}L${width} ${height}Z`} fill={side} />
       <path d={`M0 0L${depth} -${depth * 0.58}H${width + depth}L${width} 0Z`} fill={roof} />
-      <path d={`M6 8H${width - 6}`} stroke="#fff" strokeOpacity=".38" strokeWidth="1" />
+      <path d={`M6 8H${width - 6}`} stroke="var(--ink-fg)" strokeOpacity=".2" strokeWidth="1" />
       {Array.from({ length: windows }, (_, index) => {
         const windowWidth = Math.min(12, (width - 24) / windows - 4);
         const spacing = (width - 16) / windows;
         const windowX = 8 + spacing * index + (spacing - windowWidth) / 2;
         return (
           <g key={index}>
-            <rect x={windowX} y="17" width={windowWidth} height={Math.min(22, Math.max(11, height * 0.34))} rx="2" fill="#f7efe2" opacity=".84" />
-            <path d={`M${windowX} 22H${windowX + windowWidth}`} stroke={front} strokeOpacity=".24" />
+            <rect x={windowX} y="17" width={windowWidth} height={Math.min(22, Math.max(11, height * 0.34))} rx="2" fill="var(--ink-fg)" opacity=".18" />
+            <path d={`M${windowX} 22H${windowX + windowWidth}`} stroke={front} strokeOpacity=".15" />
           </g>
         );
       })}
       {height > 52 && (
-        <g fill="#fff" opacity=".58">
+        <g fill="var(--ink-fg)" opacity=".12">
           <rect x={width * 0.28} y="51" width="10" height="14" rx="2" />
           <rect x={width * 0.64} y="51" width="10" height="14" rx="2" />
         </g>
       )}
-      <path d={`M${width + 4} -${depth * 0.52}V${height - depth * 0.6}`} stroke="#fff" strokeOpacity=".32" />
+      <path d={`M${width + 4} -${depth * 0.52}V${height - depth * 0.6}`} stroke="var(--ink-fg)" strokeOpacity=".15" />
     </g>
   );
 }
 
-function Tree({ x, y, scale = 1, color = "#7eaa78" }) {
+function Tree({ x, y, scale = 1 }) {
   return (
     <g transform={`translate(${x} ${y}) scale(${scale})`}>
-      <ellipse cx="0" cy="3" rx="13" ry="5" fill="#52635a" opacity=".15" />
-      <path d="M0 -5V17" stroke="#896d58" strokeWidth="3" strokeLinecap="round" />
-      <circle cx="0" cy="-13" r="11" fill={color} />
-      <circle cx="-8" cy="-8" r="7" fill="#92bb87" />
-      <circle cx="8" cy="-7" r="7" fill="#6f9c70" />
-      <circle cx="2" cy="-20" r="7" fill="#a7c894" />
+      <ellipse cx="0" cy="3" rx="13" ry="5" fill="var(--ink)" opacity=".06" />
+      <path d="M0 -5V17" stroke="var(--brand)" strokeWidth="3" strokeLinecap="round" opacity=".4" />
+      <circle cx="0" cy="-13" r="11" fill="var(--brand)" opacity=".6" />
+      <circle cx="-8" cy="-8" r="7" fill="var(--brand)" opacity=".5" />
+      <circle cx="8" cy="-7" r="7" fill="var(--brand)" opacity=".45" />
+      <circle cx="2" cy="-20" r="7" fill="var(--brand)" opacity=".4" />
     </g>
   );
 }
@@ -63,8 +58,6 @@ export default function AgentCity({ briefCount = 0, activeAgents = 0, reviewCoun
   const rotateY = useSpring(useTransform(pointerX, [-1, 1], [-1.1, 1.1]), { stiffness: 180, damping: 24 });
   const rotateX = useSpring(useTransform(pointerY, [-1, 1], [0.8, -0.8]), { stiffness: 180, damping: 24 });
 
-  // Loops and pointer tilt stand down under reduced motion; the walking agents
-  // (SVG animateMotion) keep moving, they are the illustration's point.
   const bob = (seconds, delay = 0) =>
     prefersReducedMotion
       ? {}
@@ -91,17 +84,16 @@ export default function AgentCity({ briefCount = 0, activeAgents = 0, reviewCoun
       <motion.section
         style={
           prefersReducedMotion
-            ? { background: cityBackground }
-            : { background: cityBackground, rotateX, rotateY, transformStyle: "preserve-3d" }
+            ? { background: "var(--surface)" }
+            : { background: "var(--surface)", rotateX, rotateY, transformStyle: "preserve-3d" }
         }
         className="relative overflow-hidden rounded-xl border border-line shadow-card"
       >
-        <div className="agent-city-grain pointer-events-none absolute inset-0" />
         <div className="relative z-10 flex flex-wrap items-start justify-between gap-4 px-5 pt-5 sm:px-7 sm:pt-6">
           <div>
             <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-faint">CotizaIA · Distrito comercial</p>
             <h3 className="text-lg font-semibold tracking-tight text-fg sm:text-xl">Tu equipo, en modo simulación.</h3>
-            <p className="mt-1.5 text-[11px] text-muted">Cada brief pone en marcha una nueva operación.</p>
+            <p className="mt-1.5 text-sm text-muted">Cada brief pone en marcha una nueva operación.</p>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full border border-success/25 bg-success/10 px-3 py-2 text-[10px] font-medium text-success">
             <span className="relative flex h-1.5 w-1.5">
@@ -126,20 +118,28 @@ export default function AgentCity({ briefCount = 0, activeAgents = 0, reviewCoun
             </desc>
             <defs>
               <pattern id="city-grid" width="28" height="28" patternTransform="skewY(-28) scale(.8)" patternUnits="userSpaceOnUse">
-                <path d="M28 0H0V28" fill="none" style={{ stroke: "var(--border)" }} strokeOpacity=".45" strokeWidth="1" />
+                <path d="M28 0H0V28" fill="none" style={{ stroke: "var(--border)" }} strokeOpacity=".4" strokeWidth="1" />
               </pattern>
               <filter id="city-shadow" x="-20%" y="-30%" width="150%" height="170%">
-                <feDropShadow dx="0" dy="8" stdDeviation="8" floodColor="#554638" floodOpacity=".12" />
+                <feDropShadow dx="0" dy="8" stdDeviation="8" floodColor="var(--ink)" floodOpacity=".1" />
               </filter>
+              <linearGradient id="ground-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="var(--surface-2)" />
+                <stop offset="100%" stopColor="var(--surface)" />
+              </linearGradient>
+              <linearGradient id="road-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="var(--ink)" stopOpacity=".15" />
+                <stop offset="100%" stopColor="var(--ink)" stopOpacity=".08" />
+              </linearGradient>
             </defs>
 
-            <rect width="1120" height="380" style={{ fill: "var(--surface)" }} />
-            <circle cx="925" cy="78" r="57" fill="#f5d89a" opacity=".18" />
-            <circle cx="925" cy="78" r="38" fill="#f5d89a" opacity=".14" />
-            <path d="M0 270L411 48L1120 248L715 380H0Z" style={{ fill: "var(--surface-2)" }} />
+            <rect width="1120" height="380" style={{ fill: "var(--bg)" }} />
+            <circle cx="925" cy="78" r="57" fill="var(--accent)" opacity=".08" />
+            <circle cx="925" cy="78" r="38" fill="var(--accent)" opacity=".06" />
+            <path d="M0 270L411 48L1120 248L715 380H0Z" style={{ fill: "url(#ground-gradient)" }} />
             <path d="M0 270L411 48L1120 248L715 380H0Z" fill="url(#city-grid)" />
 
-            <g opacity=".75" style={{ fill: "var(--surface)", stroke: "var(--border-strong)" }}>
+            <g opacity=".6" style={{ fill: "var(--surface)", stroke: "var(--border-strong)" }}>
               <path d="M40 252L133 201L241 231L146 284Z" />
               <path d="M267 224L348 180L440 206L359 251Z" />
               <path d="M722 184L809 137L910 165L824 213Z" />
@@ -148,49 +148,49 @@ export default function AgentCity({ briefCount = 0, activeAgents = 0, reviewCoun
               <path d="M676 304L761 258L857 284L772 332Z" />
             </g>
 
-            <g fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: "var(--border-strong)" }}>
+            <g fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: "url(#road-gradient)" }}>
               <path d="M-24 285C157 245 239 151 405 134S741 168 1149 246" strokeWidth="31" />
               <path d="M162 388C300 290 448 215 564 132S801 78 926 39" strokeWidth="25" />
               <path d="M452 402C551 300 702 220 840 198S1025 220 1145 282" strokeWidth="24" />
             </g>
-            <g fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: "var(--border)" }}>
+            <g fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: "var(--border-strong)" }}>
               <path d="M-24 285C157 245 239 151 405 134S741 168 1149 246" strokeWidth="1.5" />
               <path d="M162 388C300 290 448 215 564 132S801 78 926 39" strokeWidth="1.5" />
               <path d="M452 402C551 300 702 220 840 198S1025 220 1145 282" strokeWidth="1.5" />
             </g>
-            <g fill="none" stroke="#cfb98f" strokeDasharray="4 10" strokeLinecap="round" opacity=".66">
+            <g fill="none" stroke="var(--accent)" strokeDasharray="4 10" strokeLinecap="round" opacity=".5">
               <path d="M-24 285C157 245 239 151 405 134S741 168 1149 246" strokeWidth="2" />
               <path d="M162 388C300 290 448 215 564 132S801 78 926 39" strokeWidth="2" />
               <path d="M452 402C551 300 702 220 840 198S1025 220 1145 282" strokeWidth="2" />
             </g>
 
             <g filter="url(#city-shadow)">
-              <Building x={103} y={228} width={71} height={59} depth={16} front="#dca18b" side="#bc786d" roof="#e9c0a7" />
-              <Building x={190} y={203} width={65} height={81} depth={17} front="#8195af" side="#627795" roof="#a5b5c4" />
-              <Building x={289} y={189} width={76} height={62} depth={16} front="#d4b46f" side="#b5945a" roof="#ebd39e" />
-              <Building x={373} y={153} width={73} height={83} depth={16} front="#ab858f" side="#896778" roof="#c9a4a0" />
-              <Building x={481} y={128} width={88} height={126} depth={18} front="#8e9db5" side="#637a99" roof="#b4c4cf" windows={4} />
-              <Building x={589} y={113} width={78} height={97} depth={18} front="#d8a373" side="#b78061" roof="#ecc7a0" windows={3} />
-              <Building x={711} y={136} width={94} height={95} depth={18} front="#7b99a0" side="#5c7a80" roof="#a9c4b8" windows={4} />
-              <Building x={853} y={174} width={73} height={70} depth={16} front="#c39078" side="#9e6d63" roof="#e0b295" />
-              <Building x={954} y={207} width={87} height={70} depth={17} front="#899a86" side="#687e70" roof="#b5c2a7" windows={4} />
-              <Building x={260} y={274} width={85} height={72} depth={14} front="#d38b73" side="#ad6b61" roof="#e7b19a" />
-              <Building x={383} y={255} width={70} height={55} depth={14} front="#889aa4" side="#677d8e" roof="#b3c0bc" />
-              <Building x={550} y={260} width={89} height={77} depth={15} front="#c8a16d" side="#9e805e" roof="#e3c38f" windows={4} />
-              <Building x={704} y={237} width={70} height={67} depth={15} front="#bc8583" side="#956978" roof="#d9aaa0" />
-              <Building x={825} y={253} width={76} height={81} depth={15} front="#8493aa" side="#65768c" roof="#b4b9c0" />
+              <Building x={103} y={228} width={71} height={59} depth={16} front="#c8b8a0" side="#a89880" roof="#d8c8b0" />
+              <Building x={190} y={203} width={65} height={81} depth={17} front="#a0b0c8" side="#8090a8" roof="#b8c8d8" />
+              <Building x={289} y={189} width={76} height={62} depth={16} front="#d0c090" side="#b0a070" roof="#e0d0a8" />
+              <Building x={373} y={153} width={73} height={83} depth={16} front="#b8a0a8" side="#988088" roof="#d0b8c0" />
+              <Building x={481} y={128} width={88} height={126} depth={18} front="#98a8c0" side="#7888a0" roof="#b0c0d0" windows={4} />
+              <Building x={589} y={113} width={78} height={97} depth={18} front="#d8b890" side="#b89870" roof="#e8d0a8" windows={3} />
+              <Building x={711} y={136} width={94} height={95} depth={18} front="#88a8b0" side="#688890" roof="#a0c0b8" windows={4} />
+              <Building x={853} y={174} width={73} height={70} depth={16} front="#c8a890" side="#a88870" roof="#e0c0a8" />
+              <Building x={954} y={207} width={87} height={70} depth={17} front="#98a898" side="#788878" roof="#b0c0b8" windows={4} />
+              <Building x={260} y={274} width={85} height={72} depth={14} front="#d0a088" side="#b08068" roof="#e0b8a0" />
+              <Building x={383} y={255} width={70} height={55} depth={14} front="#98a8b0" side="#788890" roof="#b0c0b8" />
+              <Building x={550} y={260} width={89} height={77} depth={15} front="#d0b890" side="#b09870" roof="#e0d0a0" windows={4} />
+              <Building x={704} y={237} width={70} height={67} depth={15} front="#c0a098" side="#a08078" roof="#d8b8b0" />
+              <Building x={825} y={253} width={76} height={81} depth={15} front="#90a0b8" side="#708098" roof="#a8b0c8" />
             </g>
 
             <g>
               <Tree x={70} y={267} scale={.78} />
-              <Tree x={273} y={226} scale={.7} color="#76a579" />
-              <Tree x={463} y={190} scale={.72} color="#91ae79" />
+              <Tree x={273} y={226} scale={.7} />
+              <Tree x={463} y={190} scale={.72} />
               <Tree x={685} y={167} scale={.7} />
-              <Tree x={806} y={210} scale={.78} color="#8dae79" />
+              <Tree x={806} y={210} scale={.78} />
               <Tree x={1038} y={242} scale={.78} />
-              <Tree x={365} y={306} scale={.8} color="#9dbb86" />
+              <Tree x={365} y={306} scale={.8} />
               <Tree x={667} y={282} scale={.76} />
-              <Tree x={925} y={300} scale={.8} color="#98b57f" />
+              <Tree x={925} y={300} scale={.8} />
             </g>
 
             <g style={{ fill: "var(--surface)", stroke: "var(--border-strong)" }} strokeWidth="1.2">
@@ -198,57 +198,104 @@ export default function AgentCity({ briefCount = 0, activeAgents = 0, reviewCoun
               <path d="M764 238L794 221L829 232L798 250Z" />
               <path d="M190 297L222 280L254 291L222 310Z" />
             </g>
-            <g fill="#c9b58f">
+            <g fill="var(--accent)">
               <path d="M480 205L489 199L499 202L490 208Z" />
               <path d="M794 239L802 234L810 236L802 242Z" />
               <path d="M220 301L228 296L236 299L228 304Z" />
             </g>
 
+            <g>
+              <motion.g {...bob(3.4)}>
+                <g transform="translate(177 164)">
+                  <rect width="127" height="31" rx="15.5" style={{ fill: "var(--surface)", stroke: "var(--border-strong)" }} />
+                  <circle cx="16" cy="15.5" r="4" fill="var(--accent)" />
+                  <text x="28" y="19.5" className="font-sans" style={{ fill: "var(--text-muted)" }} fontSize="10" fontWeight="600">
+                    Briefs entrantes
+                  </text>
+                </g>
+              </motion.g>
+              <motion.g {...bob(3.6, 0.5)}>
+                <g transform="translate(696 75)">
+                  <rect width="137" height="31" rx="15.5" style={{ fill: "var(--surface)", stroke: "var(--border-strong)" }} />
+                  <circle cx="16" cy="15.5" r="4" fill="var(--info)" />
+                  <text x="28" y="19.5" className="font-sans" style={{ fill: "var(--text-muted)" }} fontSize="10" fontWeight="600">
+                    Agente trabajando
+                  </text>
+                </g>
+              </motion.g>
+
+              <motion.g {...pulse(2.5)} style={{ transformOrigin: "973px 154px" }}>
+                <circle cx="973" cy="154" r="18" fill="var(--accent)" fillOpacity=".1" />
+                <circle cx="973" cy="154" r="8" fill="var(--accent)" style={{ stroke: "var(--surface)" }} strokeWidth="3" />
+              </motion.g>
+            </g>
+
             <g fill="none" strokeLinecap="round">
-              <path d="M166 254C294 189 389 149 502 164S714 202 832 191S991 215 1050 241" stroke="#ec8e70" strokeOpacity=".6" strokeWidth="2" strokeDasharray="3 8" />
-              <path d="M228 323C340 270 428 227 541 207S744 130 858 120" stroke="#8e83c7" strokeOpacity=".55" strokeWidth="2" strokeDasharray="3 8" />
-              <path d="M378 201C504 169 592 161 686 187S862 242 948 261" stroke="#d4a84d" strokeOpacity=".54" strokeWidth="2" strokeDasharray="3 8" />
+              <motion.path
+                d="M166 254C294 189 389 149 502 164S714 202 832 191S991 215 1050 241"
+                stroke="var(--accent)"
+                strokeOpacity={prefersReducedMotion ? 0 : 0.5}
+                strokeWidth="2"
+                strokeDasharray="3 8"
+                initial={false}
+                animate={prefersReducedMotion ? {} : { pathLength: [0, 1] }}
+                transition={prefersReducedMotion ? {} : { duration: 12, repeat: Infinity, ease: "linear" }}
+              />
+              <motion.path
+                d="M228 323C340 270 428 227 541 207S744 130 858 120"
+                stroke="var(--info)"
+                strokeOpacity={prefersReducedMotion ? 0 : 0.45}
+                strokeWidth="2"
+                strokeDasharray="3 8"
+                initial={false}
+                animate={prefersReducedMotion ? {} : { pathLength: [0, 1] }}
+                transition={prefersReducedMotion ? {} : { duration: 15, repeat: Infinity, delay: -6, ease: "linear" }}
+              />
+              <motion.path
+                d="M378 201C504 169 592 161 686 187S862 242 948 261"
+                stroke="var(--warning)"
+                strokeOpacity={prefersReducedMotion ? 0 : 0.45}
+                strokeWidth="2"
+                strokeDasharray="3 8"
+                initial={false}
+                animate={prefersReducedMotion ? {} : { pathLength: [0, 1] }}
+                transition={prefersReducedMotion ? {} : { duration: 14, repeat: Infinity, delay: -3, ease: "linear" }}
+              />
             </g>
             <g>
-              <circle r="5" fill="#ec846c">
+              <motion.circle
+                r="5"
+                fill="var(--accent)"
+                initial={false}
+                animate={prefersReducedMotion ? {} : { pathLength: [0, 1] }}
+                transition={prefersReducedMotion ? {} : { duration: 12, repeat: Infinity, ease: "linear" }}
+              >
                 <animateMotion dur="12s" repeatCount="indefinite" path="M166 254C294 189 389 149 502 164S714 202 832 191S991 215 1050 241" />
-              </circle>
-              <circle r="4.5" fill="#8c7ed1">
+              </motion.circle>
+              <motion.circle
+                r="4.5"
+                fill="var(--info)"
+                initial={false}
+                animate={prefersReducedMotion ? {} : { pathLength: [0, 1] }}
+                transition={prefersReducedMotion ? {} : { duration: 15, repeat: Infinity, delay: -6, ease: "linear" }}
+              >
                 <animateMotion dur="15s" begin="-6s" repeatCount="indefinite" path="M228 323C340 270 428 227 541 207S744 130 858 120" />
-              </circle>
-              <circle r="4" fill="#d3a342">
+              </motion.circle>
+              <motion.circle
+                r="4"
+                fill="var(--warning)"
+                initial={false}
+                animate={prefersReducedMotion ? {} : { pathLength: [0, 1] }}
+                transition={prefersReducedMotion ? {} : { duration: 14, repeat: Infinity, delay: -3, ease: "linear" }}
+              >
                 <animateMotion dur="14s" begin="-3s" repeatCount="indefinite" path="M378 201C504 169 592 161 686 187S862 242 948 261" />
-              </circle>
+              </motion.circle>
             </g>
-
-            <motion.g {...bob(3.4)}>
-              <g transform="translate(177 164)">
-                <rect width="127" height="31" rx="15.5" style={{ fill: "var(--surface)", stroke: "var(--border-strong)" }} />
-                <circle cx="16" cy="15.5" r="4" fill="#ec896e" />
-                <text x="28" y="19.5" className="font-sans" style={{ fill: "var(--text-muted)" }} fontSize="10" fontWeight="600">
-                  Briefs entrantes
-                </text>
-              </g>
-            </motion.g>
-            <motion.g {...bob(3.6, 0.5)}>
-              <g transform="translate(696 75)">
-                <rect width="137" height="31" rx="15.5" style={{ fill: "var(--surface)", stroke: "var(--border-strong)" }} />
-                <circle cx="16" cy="15.5" r="4" fill="#8b80c9" />
-                <text x="28" y="19.5" className="font-sans" style={{ fill: "var(--text-muted)" }} fontSize="10" fontWeight="600">
-                  Agente trabajando
-                </text>
-              </g>
-            </motion.g>
-
-            <motion.g {...pulse(2.5)} style={{ transformOrigin: "973px 154px" }}>
-              <circle cx="973" cy="154" r="18" fill="#e5a94c" fillOpacity=".12" />
-              <circle cx="973" cy="154" r="8" fill="#e5a94c" style={{ stroke: "var(--surface)" }} strokeWidth="3" />
-            </motion.g>
           </svg>
         </div>
 
-        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 px-5 pb-5 pt-1 sm:px-7 sm:pb-6">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 px-5 pb-5 pt-1 sm:px-7 sm:pb-6">
+          <div className="flex flex-wrap items-center gap-1.5">
             {neighborhoods.map(({ id, label, icon: Icon, count, tone }) => (
               <motion.button
                 key={id}
@@ -257,18 +304,18 @@ export default function AgentCity({ briefCount = 0, activeAgents = 0, reviewCoun
                 whileHover={prefersReducedMotion ? undefined : { y: -2 }}
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                 transition={{ duration: 0.12, ease: "easeOut" }}
-                className="group inline-flex items-center gap-2 rounded-full border border-line bg-surface/80 py-1.5 pl-1.5 pr-3 text-[10px] font-medium text-muted shadow-card transition-colors duration-200 hover:border-line-strong hover:bg-surface"
+                className="group inline-flex items-center gap-1.5 rounded-full border border-line bg-surface/80 py-1 pl-1.5 pr-2.5 text-[10px] font-medium text-muted shadow-card transition-colors duration-200 hover:border-line-strong hover:bg-surface"
               >
-                <span className={`grid h-6 w-6 place-items-center rounded-full ${tone}`}>
-                  <Icon size={12} aria-hidden="true" />
+                <span className={`grid h-5 w-5 place-items-center rounded-full ${tone}`}>
+                  <Icon size={10} aria-hidden="true" />
                 </span>
-                {label}
+                <span>{label}</span>
                 <span className="font-mono text-[9px] text-faint">{count}</span>
-                <ArrowUpRight size={10} className="text-faint transition-colors duration-200 group-hover:text-muted" />
+                <ArrowUpRight size={9} className="text-faint transition-colors duration-200 group-hover:text-muted" />
               </motion.button>
             ))}
           </div>
-          <div className="flex items-center gap-4 text-[10px] text-muted">
+          <div className="flex items-center gap-3 text-[10px] text-muted">
             <span>
               <strong className="font-mono font-medium text-fg">{briefCount}</strong> {briefCount === 1 ? "brief" : "briefs"}
             </span>
