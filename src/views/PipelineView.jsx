@@ -14,8 +14,8 @@ const LAST_STAGE = agentStages.length - 1;
 function Meta({ label, value, mono = false }) {
   return (
     <div>
-      <dt className="text-[11px] font-medium text-faint">{label}</dt>
-      <dd className={`mt-0.5 text-[13px] text-fg ${mono ? "tabular font-mono" : ""}`}>{value}</dd>
+      <dt className="text-[11px] font-medium text-ink-text/70">{label}</dt>
+      <dd className={`mt-0.5 text-[13px] text-ink-text ${mono ? "tabular font-mono" : ""}`}>{value}</dd>
     </div>
   );
 }
@@ -84,7 +84,7 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
             <MaskedText as="h1" text="El agente, paso a paso" className="display block text-[clamp(2.25rem,4vw,3.5rem)] text-ink-fg" />
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <StatusBadge status={execution?.status || (isLive ? "RUNNING" : "PENDING")} />
-              <span className="font-mono text-[15px] text-ink-text/90">
+              <span className="font-mono text-[15px] text-ink-text/80">
                 {execution?.briefId != null ? `Brief #${execution.briefId}` : "Sin brief"}
               </span>
             </div>
@@ -123,7 +123,7 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
         </div>
         <form onSubmit={loadTimeline} className="mt-6 flex flex-wrap items-end gap-2">
           <LimitedInput
-            label="ID del brief"
+            label={<span className="text-ink-text">ID del brief</span>}
             limit={12}
             inputMode="numeric"
             placeholder="4"

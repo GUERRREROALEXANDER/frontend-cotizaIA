@@ -1,3 +1,4 @@
+import { formatCompactCop } from "../components/dashboard/dashboardData.js";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { LayoutDashboard, List } from "lucide-react";
@@ -133,7 +134,7 @@ export default function ProposalsView({ proposals, onRefresh, focusProposalId, o
 
   const summary = useMemo(() => summarizeProposals(proposals), [proposals]);
   const stats = [
-    { id: "in-play", label: "Total en juego", value: summary.inPlay, format: formatCurrency },
+    { id: "in-play", label: "Total en juego", value: summary.inPlay, format: formatCompactCop },
     { id: "review", label: "Por revisar", value: summary.review },
     { id: "sent", label: "Enviadas", value: summary.sent },
     { id: "won", label: "Ganadas", value: summary.won },
@@ -192,10 +193,10 @@ export default function ProposalsView({ proposals, onRefresh, focusProposalId, o
           <StaggerItem
             key={stat.id}
             index={index}
-            className="rounded-full bg-surface px-6 py-4 shadow-card"
+            className="flex w-full items-center justify-between rounded-full bg-surface px-6 py-4 shadow-card"
           >
             <span className="whitespace-nowrap text-sm text-muted">{stat.label}</span>
-            <span className="display whitespace-nowrap text-2xl tabular-nums">
+            <span className="display whitespace-nowrap text-2xl tabular-nums text-fg">
               <CountUp value={stat.value} format={stat.format} />
             </span>
           </StaggerItem>
