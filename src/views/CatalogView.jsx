@@ -390,7 +390,7 @@ export default function CatalogView() {
                         <span className="min-w-0 flex-1">
                           <span className="flex flex-wrap items-center gap-2">
                             <span className="text-sm font-semibold text-fg">{service.name}</span>
-                            <Badge>{requirementCountText(requirements.length)}</Badge>
+                            <Badge tone="accent">{requirementCountText(requirements.length)}</Badge>
                           </span>
                           {service.description && (
                             <span className="mt-1 line-clamp-1 block text-xs text-muted">
@@ -458,7 +458,7 @@ export default function CatalogView() {
                                       {requirement.description}
                                     </td>
                                     <td className="whitespace-nowrap px-5 py-3 font-mono text-xs tabular text-fg">
-                                      {requirement.estimatedHours} h
+                                      <span className="display text-xl">{requirement.estimatedHours}</span> h
                                     </td>
                                     <td className="px-5 py-3">
                                       <div className="flex items-center justify-end gap-1">

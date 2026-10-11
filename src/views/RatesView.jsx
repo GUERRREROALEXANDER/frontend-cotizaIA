@@ -247,22 +247,14 @@ export default function RatesView() {
                 return (
                   <div
                     key={role.id}
-                    className={`flex items-center gap-1 rounded-lg transition-colors duration-200 ${active ? "bg-surface-2" : "hover:bg-surface-2"}`}
+                    className={active ? "flex items-center gap-1 h-12 rounded-full px-4 transition-colors duration-200 bg-accent text-accent-fg" : "flex items-center gap-1 h-12 rounded-full px-4 transition-colors duration-200 hover:bg-surface-2"}
                   >
-                    <button
-                      type="button"
-                      onClick={() => setSelectedId(role.id)}
-                      aria-current={active || undefined}
-                      className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-2 py-1.5 text-left"
+                    <span
+                      className={active ? "grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent text-accent-fg" : "border border-line bg-surface text-muted"}
                     >
-                      <span
-                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${active ? "bg-accent-soft text-brand" : "border border-line bg-surface text-muted"}`}
-                      >
-                        <UserRound size={15} aria-hidden />
-                      </span>
-                      <span className="truncate text-[13px] font-medium text-fg">{role.name}</span>
-                    </button>
-                    <HoldToConfirm compact onConfirm={() => deleteRole(role.id)} />
+                      <UserRound size={15} aria-hidden />
+                    </span>
+                    <span className="truncate text-[13px] font-medium text-fg">{role.name}</span>
                   </div>
                 );
               })}
@@ -301,11 +293,11 @@ export default function RatesView() {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-line">
-                    <th scope="col" className="px-5 py-3 text-xs font-medium text-muted">Tarifa</th>
-                    <th scope="col" className="px-5 py-3 text-xs font-medium text-muted">Vigente desde</th>
-                    <th scope="col" className="px-5 py-3 text-xs font-medium text-muted">Vigente hasta</th>
-                    <th scope="col" className="px-5 py-3 text-right text-xs font-medium text-muted">
+                  <tr className="border-b border-line py-4">
+                    <th scope="col" className="px-5 py-4 text-sm font-semibold text-muted">Tarifa</th>
+                    <th scope="col" className="px-5 py-4 text-sm font-semibold text-muted">Vigente desde</th>
+                    <th scope="col" className="px-5 py-4 text-sm font-semibold text-muted">Vigente hasta</th>
+                    <th scope="col" className="px-5 py-4 text-right text-sm font-semibold text-muted">
                       <span className="sr-only">Acciones</span>
                     </th>
                   </tr>
@@ -320,7 +312,7 @@ export default function RatesView() {
                         index={index}
                         className="transition-colors duration-200 hover:bg-surface-2"
                       >
-                        <td className="px-5 py-3">
+                        <td className="px-5 py-4">
                           {isEditing ? (
                             <input
                               type="number"
@@ -333,18 +325,18 @@ export default function RatesView() {
                               className={`${fieldClass} w-40`}
                             />
                           ) : (
-                            <span className="font-mono text-[13px] tabular text-fg">
+                            <span className="display text-xl">
                               {formatCurrency(rate.copPerHour)} / hora
                             </span>
                           )}
                         </td>
-                        <td className="whitespace-nowrap px-5 py-3 text-xs text-muted">
+                        <td className="whitespace-nowrap px-5 py-4 text-sm text-muted">
                           {formatDate(rate.effectiveFrom)}
                         </td>
-                        <td className="whitespace-nowrap px-5 py-3 text-xs text-muted">
+                        <td className="whitespace-nowrap px-5 py-4 text-sm text-muted">
                           {rate.effectiveTo ? formatDate(rate.effectiveTo) : "Sin límite"}
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="px-5 py-4">
                           {isEditing ? (
                             <div className="flex items-center justify-end gap-2">
                               <Button size="sm" variant="ghost" onClick={() => setEditingRate(null)}>

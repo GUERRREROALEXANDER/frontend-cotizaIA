@@ -7,6 +7,7 @@ import { LimitedInput } from "../components/fields.jsx";
 import { FormPanel } from "../components/settings/FormPanel.jsx";
 import { HoldToConfirm } from "../components/settings/HoldToConfirm.jsx";
 import {
+  Badge,
   Button,
   EmptyState,
   IconButton,
@@ -168,11 +169,9 @@ export default function ClientsView({ clients, onClientsChange, onRefresh }) {
       </AnimatePresence>
 
       <Panel className="overflow-hidden">
-        <div className="border-b border-line px-5 py-4">
-          <p className="text-sm font-semibold text-fg">Lista de clientes</p>
-          <p className="mt-0.5 text-xs text-faint">
-            {filtered.length === 1 ? "1 cliente en lista" : `${filtered.length} clientes en lista`}
-          </p>
+        <div className="border-b border-line px-6 py-5">
+          <p className="text-lg font-bold">Lista de clientes</p>
+          <Badge tone="accent">{filtered.length === 1 ? "1 cliente" : `${filtered.length} clientes`}</Badge>
         </div>
         {knownList === null ? (
           <div className="space-y-2 p-5">
@@ -208,12 +207,12 @@ export default function ClientsView({ clients, onClientsChange, onRefresh }) {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-line">
-                  <th scope="col" className="px-5 py-3 text-xs font-medium text-muted">Nombre</th>
-                  <th scope="col" className="px-5 py-3 text-xs font-medium text-muted">Empresa</th>
-                  <th scope="col" className="px-5 py-3 text-xs font-medium text-muted">Correo</th>
-                  <th scope="col" className="px-5 py-3 text-xs font-medium text-muted">Creado</th>
-                  <th scope="col" className="px-5 py-3 text-right text-xs font-medium text-muted">
+                <tr className="border-b border-line py-4">
+                  <th scope="col" className="px-5 py-4 text-sm font-semibold text-muted">Nombre</th>
+                  <th scope="col" className="px-5 py-4 text-sm font-semibold text-muted">Empresa</th>
+                  <th scope="col" className="px-5 py-4 text-sm font-semibold text-muted">Correo</th>
+                  <th scope="col" className="px-5 py-4 text-sm font-semibold text-muted">Creado</th>
+                  <th scope="col" className="px-5 py-4 text-right text-sm font-semibold text-muted">
                     <span className="sr-only">Acciones</span>
                   </th>
                 </tr>
@@ -226,11 +225,11 @@ export default function ClientsView({ clients, onClientsChange, onRefresh }) {
                     index={index}
                     className="transition-colors duration-200 hover:bg-surface-2"
                   >
-                    <td className="px-5 py-3 text-[13px] font-medium text-fg">{client.name}</td>
-                    <td className="px-5 py-3 text-xs text-muted">
+                    <td className="px-5 py-4 text-[15px] font-medium text-fg">{client.name}</td>
+                    <td className="px-5 py-4 text-xs text-muted">
                       {client.company || <span className="text-faint">Sin empresa</span>}
                     </td>
-                    <td className="px-5 py-3 text-xs text-muted">{client.email}</td>
+                    <td className="px-5 py-4 text-xs text-muted">{client.email}</td>
                     <td className="whitespace-nowrap px-5 py-3 text-xs text-faint">
                       {formatDate(client.createdAt)}
                     </td>
