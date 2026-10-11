@@ -191,26 +191,28 @@ export function Skeleton({ className = "" }) {
   return <span aria-hidden className={`skeleton block rounded-md ${className}`} />;
 }
 
+// Statuses share the five kanban groups, so a status has one color in badges,
+// kanban columns and the dashboard donut (tokens --status-* / --chart-*).
 const statusTone = {
-  RECEIVED: "neutral",
-  QUOTED: "neutral",
+  RECEIVED: "new",
+  ANALYZING: "new",
+  QUOTED: "new",
+  IN_REVIEW: "review",
+  SENT: "sent",
+  NEGOTIATING: "sent",
+  ACCEPTED: "won",
+  CONTRACT_ISSUED: "won",
+  REJECTED: "closed",
+  EXPIRED: "closed",
   PENDING: "neutral",
   DRAFT: "neutral",
-  ANALYZING: "info",
-  PROCESSING: "info",
-  RUNNING: "info",
-  IN_REVIEW: "warning",
-  HALTED: "warning",
-  SENT: "accent",
-  NEGOTIATING: "accent",
-  ACCEPTED: "success",
-  APPROVED: "success",
-  CONTRACT_ISSUED: "success",
-  COMPLETED: "success",
-  SUCCEEDED: "success",
-  REJECTED: "danger",
-  EXPIRED: "danger",
-  FAILED: "danger",
+  RUNNING: "new",
+  PROCESSING: "new",
+  HALTED: "review",
+  APPROVED: "won",
+  COMPLETED: "won",
+  SUCCEEDED: "won",
+  FAILED: "closed",
 };
 
 export const statusLabels = {
@@ -237,11 +239,17 @@ export const statusLabels = {
 
 const toneClass = {
   neutral: "bg-surface-2 text-muted border-transparent",
-  info: "bg-info/10 text-info border-transparent",
-  warning: "bg-warning/12 text-warning border-transparent",
+  new: "bg-[var(--status-new-bg)] text-[var(--status-new-fg)] border-transparent",
+  review: "bg-[var(--status-review-bg)] text-[var(--status-review-fg)] border-transparent",
+  sent: "bg-[var(--status-sent-bg)] text-[var(--status-sent-fg)] border-transparent",
+  won: "bg-[var(--status-won-bg)] text-[var(--status-won-fg)] border-transparent",
+  closed: "bg-[var(--status-closed-bg)] text-[var(--status-closed-fg)] border-transparent",
+  // Generic tones kept for non-status badges.
+  info: "bg-[var(--status-new-bg)] text-[var(--status-new-fg)] border-transparent",
+  warning: "bg-[var(--status-review-bg)] text-[var(--status-review-fg)] border-transparent",
   accent: "bg-accent-soft text-brand border-transparent",
-  success: "bg-ink text-ink-fg border-transparent",
-  danger: "bg-danger/10 text-danger border-transparent",
+  success: "bg-[var(--status-won-bg)] text-[var(--status-won-fg)] border-transparent",
+  danger: "bg-[var(--status-closed-bg)] text-[var(--status-closed-fg)] border-transparent",
 };
 
 export function Badge({ tone = "neutral", children, className = "" }) {

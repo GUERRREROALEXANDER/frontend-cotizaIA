@@ -3,29 +3,44 @@ import { LayoutGroup } from "framer-motion";
 import { formatCurrency } from "../../components/ui.jsx";
 import { ProposalCard } from "./ProposalCard.jsx";
 
+// Column chips use the shared status palette (tokens --status-*), the same
+// colors as the badges and the dashboard donut.
+const toneChip = {
+  new: "bg-[var(--status-new-bg)] text-[var(--status-new-fg)]",
+  review: "bg-[var(--status-review-bg)] text-[var(--status-review-fg)]",
+  sent: "bg-[var(--status-sent-bg)] text-[var(--status-sent-fg)]",
+  won: "bg-[var(--status-won-bg)] text-[var(--status-won-fg)]",
+  closed: "bg-[var(--status-closed-bg)] text-[var(--status-closed-fg)]",
+};
+
 export const STATUS_GROUPS = [
   {
     id: "nuevas",
+    tone: "new",
     label: "Nuevas",
     statuses: ["RECEIVED", "ANALYZING", "QUOTED"],
   },
   {
     id: "por-revisar",
+    tone: "review",
     label: "Por revisar",
     statuses: ["IN_REVIEW"],
   },
   {
     id: "enviadas",
+    tone: "sent",
     label: "Enviadas",
     statuses: ["SENT", "NEGOTIATING"],
   },
   {
     id: "ganadas",
+    tone: "won",
     label: "Ganadas",
     statuses: ["ACCEPTED", "CONTRACT_ISSUED"],
   },
   {
     id: "cerradas",
+    tone: "closed",
     label: "Cerradas",
     statuses: ["REJECTED", "EXPIRED"],
   },
@@ -76,7 +91,7 @@ export function ProposalKanban({ proposals, selectedId, onSelect }) {
           >
             <header className="px-2 pt-2">
               <h3 className="flex items-center gap-2.5 text-sm font-semibold text-fg">
-                <span className="tabular grid h-7 min-w-7 place-items-center rounded-full bg-accent-soft px-2 text-xs font-semibold text-brand">
+                <span className={`tabular grid h-7 min-w-7 place-items-center rounded-full px-2 text-xs font-semibold ${toneChip[column.tone]}`}>
                   {column.count}
                 </span>
                 {column.label}

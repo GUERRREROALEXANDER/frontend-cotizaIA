@@ -31,11 +31,22 @@
   --warning: #a85a00;
   --danger: #cb272f;
   --info: #0b4c72;
-  --chart-1: #163300;
-  --chart-2: #0b4c72;
-  --chart-3: #a85a00;
-  --chart-4: #6a6c6a;
-  --chart-5: #2f7a1c;
+  /* Categorical status palette, validated with the dataviz validator (light,
+     #ffffff surface): Ganadas, Nuevas, Por revisar, Enviadas, Cerradas. The
+     same order is used for donut segments so adjacent slots stay CVD-safe. */
+  --chart-1: #3f8f2a;
+  --chart-2: #2f6fbf;
+  --chart-3: #c4860f;
+  --chart-4: #0a8fa8;
+  --chart-5: #d25a43;
+  --chart-line: #3f8f2a;
+  --chart-fill: #9fe870;
+  /* Status badges: soft tint + dark ink of the same hue. */
+  --status-new-bg: #e4eefb;      --status-new-fg: #1f4f8f;
+  --status-review-bg: #fdf0cf;   --status-review-fg: #7a4f00;
+  --status-sent-bg: #d9f1f4;     --status-sent-fg: #075f70;
+  --status-won-bg: #163300;      --status-won-fg: #9fe870;
+  --status-closed-bg: #fbe3de;   --status-closed-fg: #9a2f1f;
   --shadow-sm: 0 0 0 1px rgb(14 15 12 / 0.06), 0 1px 2px rgb(14 15 12 / 0.04);
   --shadow-lift: 0 0 0 1px rgb(14 15 12 / 0.06), 0 6px 20px rgb(14 15 12 / 0.08);
   --shadow-overlay: 0 10px 32px rgb(14 15 12 / 0.15), 0 40px 40px rgb(14 15 12 / 0.04);
@@ -66,11 +77,19 @@
   --warning: #f2b33d;
   --danger: #ff6b6b;
   --info: #7cc4f2;
-  --chart-1: #9fe870;
-  --chart-2: #7cc4f2;
-  --chart-3: #f2b33d;
-  --chart-4: #b4bcab;
-  --chart-5: #5fbf8f;
+  /* Same categories, re-stepped for the dark surface (#12160f), validated. */
+  --chart-1: #4f9e33;
+  --chart-2: #4a7fd0;
+  --chart-3: #b9851f;
+  --chart-4: #1f95ab;
+  --chart-5: #c9604b;
+  --chart-line: #9fe870;
+  --chart-fill: #9fe870;
+  --status-new-bg: rgb(74 127 208 / 0.18);   --status-new-fg: #9cc0f5;
+  --status-review-bg: rgb(185 133 31 / 0.2); --status-review-fg: #f0c66a;
+  --status-sent-bg: rgb(31 149 171 / 0.2);   --status-sent-fg: #79d3e3;
+  --status-won-bg: #9fe870;                  --status-won-fg: #163300;
+  --status-closed-bg: rgb(201 96 75 / 0.2);  --status-closed-fg: #f3a594;
   --shadow-sm: 0 0 0 1px rgb(241 245 236 / 0.05);
   --shadow-lift: 0 0 0 1px rgb(241 245 236 / 0.08), 0 10px 30px rgb(0 0 0 / 0.45);
   --shadow-overlay: 0 24px 60px -12px rgb(0 0 0 / 0.6);

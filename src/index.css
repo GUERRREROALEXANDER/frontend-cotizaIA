@@ -34,6 +34,8 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-line: var(--chart-line);
+  --color-chart-fill: var(--chart-fill);
   --font-sans: "Inter Variable", system-ui, sans-serif;
   --font-display: "Inter Tight Variable", "Inter Variable", system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, monospace;
