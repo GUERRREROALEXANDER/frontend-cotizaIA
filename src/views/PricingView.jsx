@@ -72,6 +72,7 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
       label: `Propuesta #${item.id}`,
       description: statusLabels[status] || (item.briefId ? `Brief #${item.briefId}` : "Propuesta"),
       meta: formatCurrency(item.total),
+      initials: `#${item.id}`,
     };
   });
 
@@ -326,22 +327,37 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
 
           <motion.div
             {...(reduce ? reducedFade : { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, transition: { duration: duration.state, ease: ease.out } })}
-            className="mt-6 rounded-2xl bg-accent-soft p-6"
+            className="relative mt-6 overflow-hidden rounded-2xl p-6"
+            style={{
+              background: "linear-gradient(135deg, var(--accent) 0%, var(--chart-fill) 40%, var(--chart-4) 140%)",
+              color: "var(--accent-fg)",
+            }}
           >
-            <p className="flex items-center gap-2 text-sm font-semibold text-brand">
-              <Sparkles size={14} aria-hidden />
+            {!reduce && (
+              <motion.span
+                aria-hidden
+                className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/35 to-transparent"
+                initial={{ x: "-120%" }}
+                animate={{ x: "320%" }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
+              />
+            )}
+            <p className="relative flex items-center gap-2 text-sm font-semibold text-accent-fg">
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-ink-fg" aria-hidden>
+                <Sparkles size={14} />
+              </span>
               Estimación dinámica
             </p>
-            <p className="display tabular mt-4 text-[clamp(2.25rem,4vw,3rem)] text-fg">
-              <CountUp value={previewTotal} format={formatCurrency} />
+            <p className="display tabular relative mt-4 text-5xl text-accent-fg">
+              <CountUp key={previewTotal} value={previewTotal} format={formatCurrency} />
             </p>
-            <p className="mt-3 text-sm text-muted">
+            <p className="relative mt-3 text-sm text-accent-fg opacity-80">
               {proposal ? "Vista previa calculada a partir del total de la propuesta." : "Selecciona una propuesta para ver una referencia."}
             </p>
           </motion.div>
 
-          <p className="mt-4 text-sm text-faint">
-            Simulación: no cambia la propuesta guardada. La estrategia de precios y las horas sí se guardan.
+          <p className="mt-4 text-sm text-muted">
+            Simulación: no cambia la propuesta guardada.
           </p>
         </Panel>
       </div>
@@ -364,7 +380,7 @@ function InkStatus({ status }) {
 
 function ToggleRow({ icon: Icon, title, description, active, onToggle }) {
   return (
-    <div className="flex items-center gap-4 rounded-xl bg-surface-2/60 p-4">
+    <div className={`flex items-center gap-4 rounded-xl p-4 transition-colors duration-200 ${active ? "bg-accent-soft ring-1 ring-brand" : "bg-surface-2/60"}`}>
       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-brand" aria-hidden>
         <Icon size={18} strokeWidth={1.8} />
       </span>
@@ -378,10 +394,11 @@ function ToggleRow({ icon: Icon, title, description, active, onToggle }) {
         aria-checked={active}
         aria-label={title}
         onClick={onToggle}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ease-out ${active ? "bg-accent" : "border border-line-strong bg-surface"}`}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ease-out ${active ? "bg-ink" : "bg-surface-2"}`}
       >
         <motion.span
-          className="absolute left-1 top-1 h-4 w-4 rounded-full bg-surface shadow-card"
+          layout
+          className={`absolute left-1 top-1 h-4 w-4 rounded-full shadow-card ${active ? "bg-ink-fg" : "bg-ink-text"}`}
           animate={{ x: active ? 20 : 0 }}
           transition={{ duration: duration.state, ease: ease.out }}
         />
