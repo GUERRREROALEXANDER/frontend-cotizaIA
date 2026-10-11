@@ -7,3 +7,4 @@ dist/
 .env*
 .stage/
 .skills/
+.qa/

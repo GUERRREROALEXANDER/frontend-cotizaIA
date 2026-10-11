@@ -4,7 +4,7 @@ import { ArrowDownRight, ArrowUpRight, Check, Clock3, Coins, Layers3, Save, Spar
 import { get, put } from "../api.js";
 import { toast } from "sonner";
 import { PageHeader, Panel, SectionHeading, Button, InkPanel, statusLabels, formatCurrency } from "../components/ui.jsx";
-import { Select } from "../components/fields.jsx";
+import { ComboSelect } from "../components/fields.jsx";
 import { CountUp } from "../motion/Motion.jsx";
 import { duration, ease, reducedFade, staggerDelay, viewTransition } from "../motion/presets.js";
 
@@ -64,6 +64,16 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
     setError("");
     setSuccess("");
   };
+
+  const proposalOptions = (proposals || []).map((item) => {
+    const status = String(item.status || "").toUpperCase();
+    return {
+      value: String(item.id),
+      label: `Propuesta #${item.id}`,
+      description: statusLabels[status] || (item.briefId ? `Brief #${item.briefId}` : "Propuesta"),
+      meta: formatCurrency(item.total),
+    };
+  });
 
   async function saveModel(model) {
     clearMessages();
@@ -178,18 +188,14 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
       <div className="grid gap-6 xl:grid-cols-[1.1fr_.9fr]">
         <Panel className="p-6">
           <SectionHeading title="Ajuste de alcance" description="Edita las horas de los ítems en una propuesta procesada." />
-          <Select
+          <ComboSelect
             label="Propuesta"
             value={selectedProposalId}
-            onChange={(event) => setSelectedProposalId(event.target.value)}
-          >
-            <option value="">Selecciona una propuesta…</option>
-            {proposals.map((item) => (
-              <option key={item.id} value={item.id}>
-                #{item.id} · Brief #{item.briefId} · {formatCurrency(item.total)}
-              </option>
-            ))}
-          </Select>
+            onChange={setSelectedProposalId}
+            options={proposalOptions}
+            placeholder="Selecciona una propuesta..."
+            emptyText="Sin propuestas disponibles"
+          />
 
           {!proposals.length && (
             <motion.p

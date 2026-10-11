@@ -26,7 +26,7 @@ import {
   formatDate,
   formatRelative,
 } from "../components/ui.jsx";
-import { LimitedInput, LimitedTextarea, Select } from "../components/fields.jsx";
+import { ComboSelect, LimitedInput, LimitedTextarea } from "../components/fields.jsx";
 import { LIMITS } from "../limits.js";
 import { duration, ease } from "../motion/presets.js";
 import { StaggerItem } from "../motion/Motion.jsx";
@@ -320,6 +320,11 @@ export default function InboxView({
   const sortedBriefs = [...(briefs || [])].sort(
     (a, b) => new Date(b.receivedAt) - new Date(a.receivedAt),
   );
+  const clientOptions = (clients || []).map((client) => ({
+    value: String(client.id),
+    label: client.name,
+    description: client.company || client.email || "",
+  }));
   const isPdfDetail = detail?.source === "PDF";
   const showSuccess = pipelineReady && !busy && !isProcessing && detail?.proposalId;
 
@@ -462,21 +467,17 @@ export default function InboxView({
                           Crear cliente
                         </AnimatedLink>
                       </div>
-                      <Select
+                      <ComboSelect
                         id="brief-client"
                         aria-label="Cliente asociado"
                         value={clientId}
-                        onChange={(event) => setClientId(event.target.value)}
+                        onChange={setClientId}
+                        options={clientOptions}
+                        placeholder="Selecciona un cliente"
+                        emptyText="Sin clientes registrados"
+                        emptyAction={{ label: "Crear cliente", onClick: () => setClientFormOpen(true) }}
                         required
-                      >
-                        <option value="">Selecciona un cliente</option>
-                        {clients.map((client) => (
-                          <option key={client.id} value={client.id}>
-                            {client.name}
-                            {client.company ? ` · ${client.company}` : ""}
-                          </option>
-                        ))}
-                      </Select>
+                      />
                       {!clients.length && (
                         <p className="mt-2 text-sm text-warning">
                           Registra un cliente antes de enviar un brief.
@@ -611,21 +612,17 @@ export default function InboxView({
                           Crear cliente
                         </AnimatedLink>
                       </div>
-                      <Select
+                      <ComboSelect
                         id="pdf-client"
                         aria-label="Cliente asociado"
                         value={clientId}
-                        onChange={(event) => setClientId(event.target.value)}
+                        onChange={setClientId}
+                        options={clientOptions}
+                        placeholder="Selecciona un cliente"
+                        emptyText="Sin clientes registrados"
+                        emptyAction={{ label: "Crear cliente", onClick: () => setClientFormOpen(true) }}
                         required
-                      >
-                        <option value="">Selecciona un cliente</option>
-                        {clients.map((client) => (
-                          <option key={client.id} value={client.id}>
-                            {client.name}
-                            {client.company ? ` · ${client.company}` : ""}
-                          </option>
-                        ))}
-                      </Select>
+                      />
                     </div>
 
                     {clientFormOpen && (
