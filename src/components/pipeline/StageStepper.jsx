@@ -26,7 +26,7 @@ function DrawnCheck({ reduce }) {
 const nodeTone = {
   failed: "border-danger/30 bg-danger/10 text-danger",
   done: "border-success/25 bg-success/10 text-success",
-  current: "border-accent/40 bg-accent-soft text-accent",
+  current: "border-brand/40 bg-accent-soft text-brand",
   pending: "border-line bg-surface-2 text-faint",
 };
 
@@ -75,7 +75,7 @@ export function StageStepper({ stages, expanded, onToggle, live, simulationStep,
                   {current && !reduce && (
                     <motion.span
                       aria-hidden="true"
-                      className="absolute -inset-0.5 rounded-full border border-accent"
+                      className="absolute -inset-0.5 rounded-full border border-brand"
                       initial={{ opacity: 0.55, scale: 1 }}
                       animate={{ opacity: 0, scale: 1.4 }}
                       transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}

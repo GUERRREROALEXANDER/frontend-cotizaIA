@@ -44,12 +44,12 @@ export function ProposalDocumentsList({ documents, proposalId }) {
           animate={{ opacity: 1, y: 0 }}
           onClick={() => handleDownload(document.type, document.fileName)}
           disabled={loadingType === document.type}
-          className="group flex w-full items-center justify-between gap-4 rounded-lg border border-line bg-surface p-3 transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+          className="group flex w-full items-center justify-between gap-4 rounded-lg border border-line bg-surface p-3 transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:opacity-50 disabled:cursor-not-allowed"
           role="listitem"
           aria-label={`Descargar ${document.fileName}`}
         >
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <span className="shrink-0 grid h-9 w-9 place-items-center rounded-lg bg-accent-soft text-accent" aria-hidden>
+            <span className="shrink-0 grid h-9 w-9 place-items-center rounded-lg bg-accent-soft text-brand" aria-hidden>
               <FileText size={16} strokeWidth={2} />
             </span>
             <div className="min-w-0">

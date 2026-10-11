@@ -34,7 +34,7 @@ export function RecentBriefs({ briefs = [], onOpenBrief, className = "" }) {
                   onClick={() => onOpenBrief(brief)}
                   className="group flex w-full items-start gap-3 py-2.5 text-left transition-colors duration-200 hover:bg-surface-2 focus-visible:bg-surface-2"
                 >
-                  <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-line bg-surface-2 text-muted transition-colors duration-200 group-hover:text-accent">
+                  <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-line bg-surface-2 text-muted transition-colors duration-200 group-hover:text-brand">
                     <ChannelIcon size={14} aria-hidden />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -50,7 +50,7 @@ export function RecentBriefs({ briefs = [], onOpenBrief, className = "" }) {
                       {previewText(brief.rawText)}
                     </span>
                   </span>
-                  <ArrowUpRight size={14} className="mt-1 shrink-0 text-faint transition-colors duration-200 group-hover:text-accent" aria-hidden />
+                  <ArrowUpRight size={14} className="mt-1 shrink-0 text-faint transition-colors duration-200 group-hover:text-brand" aria-hidden />
                 </button>
               </StaggerItem>
             );

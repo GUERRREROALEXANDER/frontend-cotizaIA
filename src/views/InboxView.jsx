@@ -338,7 +338,7 @@ export default function InboxView({
               <p className="text-sm font-semibold text-fg">Bandeja de entrada</p>
               <p className="mt-1 text-xs text-faint">Solicitudes guardadas recientemente</p>
             </div>
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent-soft text-accent">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent-soft text-brand">
               <FilePlus2 size={16} aria-hidden />
             </span>
           </div>
@@ -361,7 +361,7 @@ export default function InboxView({
                       <span
                         className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl border ${
                           selected
-                            ? "border-accent/25 bg-accent-soft text-accent"
+                            ? "border-brand/25 bg-accent-soft text-brand"
                             : "border-line bg-surface-2 text-muted"
                         }`}
                       >
@@ -444,7 +444,7 @@ export default function InboxView({
                       <motion.span
                         layoutId="inbox-mode-indicator"
                         transition={{ duration: duration.state, ease: ease.fluid }}
-                        className="absolute inset-0 rounded-md border border-accent/25 bg-accent-soft"
+                        className="absolute inset-0 rounded-md border border-brand/25 bg-accent-soft"
                         aria-hidden
                       />
                     )}
@@ -462,7 +462,7 @@ export default function InboxView({
                     <button
                       type="button"
                       onClick={() => setClientFormOpen((open) => !open)}
-                      className="flex items-center gap-1 text-xs text-accent hover:text-fg"
+                      className="flex items-center gap-1 text-xs text-brand hover:text-fg"
                     >
                       <Plus size={12} aria-hidden /> Crear cliente
                     </button>
@@ -535,7 +535,7 @@ export default function InboxView({
                       aria-pressed={source === id}
                       className={`flex items-center justify-center gap-2 rounded-lg border px-2 py-3 text-xs transition-colors duration-200 ${
                         source === id
-                          ? "border-accent/25 bg-accent-soft text-accent"
+                          ? "border-brand/25 bg-accent-soft text-brand"
                           : "border-line bg-surface-2 text-muted hover:border-line-strong hover:text-fg"
                       }`}
                     >
@@ -608,7 +608,7 @@ export default function InboxView({
                     <button
                       type="button"
                       onClick={() => setClientFormOpen((open) => !open)}
-                      className="flex items-center gap-1 text-xs text-accent hover:text-fg"
+                      className="flex items-center gap-1 text-xs text-brand hover:text-fg"
                     >
                       <Plus size={12} aria-hidden /> Crear cliente
                     </button>
@@ -748,7 +748,7 @@ export default function InboxView({
           {isProcessing && (
             <Panel className="overflow-hidden">
               <div className="flex items-center gap-3 border-b border-line px-5 py-4">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-accent-soft text-accent">
+                <span className="grid h-8 w-8 place-items-center rounded-xl bg-accent-soft text-brand">
                   <Circle size={12} fill="currentColor" aria-hidden />
                 </span>
                 <div>
@@ -759,7 +759,7 @@ export default function InboxView({
               <div className="space-y-3 px-5 py-4">
                 {intakeStages.slice(0, stage + 1).map((label, index) => (
                   <div key={label} className="flex items-center gap-2.5 text-xs">
-                    <span className={index < stage ? "text-success" : "text-accent"}>
+                    <span className={index < stage ? "text-success" : "text-brand"}>
                       {index < stage ? (
                         <Check size={13} aria-hidden />
                       ) : (
@@ -767,7 +767,7 @@ export default function InboxView({
                       )}
                     </span>
                     <span className={index === stage ? "text-fg" : "text-muted"}>{label}</span>
-                    {index === stage && <ArrowRight className="ml-auto text-accent" size={13} aria-hidden />}
+                    {index === stage && <ArrowRight className="ml-auto text-brand" size={13} aria-hidden />}
                   </div>
                 ))}
               </div>
@@ -819,7 +819,7 @@ export default function InboxView({
                           className="flex items-start justify-between gap-4 rounded-xl border border-line bg-surface-2 px-3.5 py-3"
                         >
                           <div className="flex min-w-0 gap-2.5">
-                            <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md bg-accent-soft font-mono text-[10px] text-accent">
+                            <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md bg-accent-soft font-mono text-[10px] text-brand">
                               {item.requirementId}
                             </span>
                             <p className="text-xs leading-5 text-fg">{item.description}</p>

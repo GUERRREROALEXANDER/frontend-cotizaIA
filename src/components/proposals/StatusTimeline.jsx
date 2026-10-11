@@ -29,7 +29,7 @@ export function StatusTimeline({ history }) {
             <p className="text-sm text-fg">
               <span className="font-medium">{entry.from || "CREADA"}</span>
               <span className="mx-2 text-muted">→</span>
-              <span className="font-medium text-accent">{entry.to}</span>
+              <span className="font-medium text-brand">{entry.to}</span>
             </p>
             <p className="mt-0.5 text-xs text-muted">{formatDateTime(entry.changedAt)}</p>
           </div>

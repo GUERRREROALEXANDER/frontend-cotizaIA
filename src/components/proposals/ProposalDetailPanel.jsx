@@ -65,7 +65,7 @@ export function ProposalDetailPanel({ detail, proposals, onAction, onClose, work
           <>
             <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line px-5 py-4">
               <div className="flex items-center gap-3">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent-soft text-accent" aria-hidden>
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent-soft text-brand" aria-hidden>
                   <FileText size={18} />
                 </span>
                 <div>

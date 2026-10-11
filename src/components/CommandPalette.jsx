@@ -8,7 +8,7 @@ import { views } from "../navigation.js";
 import { StatusBadge, formatCurrency } from "./ui.jsx";
 
 const itemClass =
-  "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-fg data-[selected=true]:bg-surface-2 [&[data-selected=true]_svg]:text-accent";
+  "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-fg data-[selected=true]:bg-surface-2 [&[data-selected=true]_svg]:text-brand";
 
 function PaletteGroup({ heading, children }) {
   return (

@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1c1a17" />
+    <meta name="theme-color" content="#f4f6f1" />
     <script>
       // Apply the saved theme before first paint so there is no flash.
       try {
         var saved = localStorage.getItem("cotizaia.theme");
-        document.documentElement.dataset.theme = saved === "light" ? "light" : "dark";
+        document.documentElement.dataset.theme = saved === "dark" ? "dark" : "light";
       } catch (e) {
-        document.documentElement.dataset.theme = "dark";
+        document.documentElement.dataset.theme = "light";
       }
     </script>
     <meta name="description" content="Centro de operaciones comercial autónomo de CotizaIA." />

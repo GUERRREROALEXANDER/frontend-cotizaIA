@@ -5,11 +5,11 @@ import { duration, ease } from "../../motion/presets.js";
 
 function NavList({ activeView, onNavigate, collapsed, counts, layoutGroup }) {
   return (
-    <nav aria-label="Navegación principal" className="flex flex-1 flex-col gap-5 overflow-y-auto px-2 py-3 scrollbar-subtle">
+    <nav aria-label="Navegación principal" className="flex flex-1 flex-col gap-7 overflow-y-auto px-3 py-4 scrollbar-subtle">
       {viewGroups.map((group) => (
         <div key={group}>
-          {!collapsed && <p className="mb-1.5 px-2.5 text-[11px] font-medium text-faint">{group}</p>}
-          <ul className="flex flex-col gap-0.5">
+          {!collapsed && <p className="mb-2 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-faint">{group}</p>}
+          <ul className="flex flex-col gap-1">
             {views.filter((view) => view.group === group).map(({ id, label, icon: Icon, shortcut }) => {
               const active = activeView === id;
               const count = counts?.[id];
@@ -20,19 +20,19 @@ function NavList({ activeView, onNavigate, collapsed, counts, layoutGroup }) {
                     onClick={() => onNavigate(id)}
                     aria-current={active ? "page" : undefined}
                     title={collapsed ? `${label} (${shortcut})` : undefined}
-                    className={`group relative flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-[13px] transition-colors duration-200 ${active ? "text-fg" : "text-muted hover:bg-surface-2 hover:text-fg"} ${collapsed ? "justify-center" : ""}`}
+                    className={`group relative flex h-11 w-full items-center gap-3 rounded-full px-4 text-[15px] font-medium transition-colors duration-200 ${active ? "text-accent-fg" : "text-muted hover:bg-surface-2 hover:text-fg"} ${collapsed ? "justify-center px-0" : ""}`}
                   >
                     {active && (
                       <motion.span
                         layoutId={`${layoutGroup}-active`}
-                        className="absolute inset-0 rounded-lg border border-line bg-surface-2"
+                        className="absolute inset-0 rounded-full bg-accent"
                         transition={{ duration: duration.state, ease: ease.fluid }}
                       />
                     )}
-                    <Icon size={16} className={`relative shrink-0 ${active ? "text-accent" : ""}`} aria-hidden />
+                    <Icon size={18} className="relative shrink-0" aria-hidden />
                     {!collapsed && <span className="relative flex-1 truncate text-left">{label}</span>}
                     {!collapsed && count > 0 && (
-                      <span className="relative rounded-full bg-accent-soft px-1.5 font-mono text-[11px] text-accent">{count}</span>
+                      <span className={`relative grid min-w-6 place-items-center rounded-full px-1.5 text-xs font-semibold ${active ? "bg-ink text-ink-fg" : "bg-accent-soft text-brand"}`}>{count}</span>
                     )}
                     {!collapsed && !count && (
                       <kbd className="relative hidden font-mono text-[10px] text-faint opacity-0 transition-opacity group-hover:opacity-100 lg:inline">{shortcut}</kbd>
@@ -50,15 +50,12 @@ function NavList({ activeView, onNavigate, collapsed, counts, layoutGroup }) {
 
 function Brand({ collapsed }) {
   return (
-    <div className={`flex h-14 items-center gap-2.5 px-4 ${collapsed ? "justify-center px-0" : ""}`}>
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-accent text-accent-fg">
-        <Sparkles size={16} aria-hidden />
+    <div className={`flex h-20 items-center gap-3 px-5 ${collapsed ? "justify-center px-0" : ""}`}>
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ink text-ink-fg">
+        <Sparkles size={18} aria-hidden />
       </span>
       {!collapsed && (
-        <div className="min-w-0 leading-tight">
-          <p className="text-sm font-semibold text-fg">CotizaIA</p>
-          <p className="text-[11px] text-faint">Centro de operaciones</p>
-        </div>
+        <p className="display text-[1.6rem] text-fg">CotizaIA</p>
       )}
     </div>
   );
@@ -71,7 +68,7 @@ export default function Sidebar({ activeView, onNavigate, collapsed, onToggleCol
     <>
       <motion.aside
         initial={false}
-        animate={{ width: collapsed ? 64 : 248 }}
+        animate={{ width: collapsed ? 76 : 264 }}
         transition={{ duration: duration.panel, ease: ease.fluid }}
         className="sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-line bg-surface lg:flex"
       >
@@ -82,7 +79,7 @@ export default function Sidebar({ activeView, onNavigate, collapsed, onToggleCol
             type="button"
             onClick={onToggleCollapsed}
             aria-label={collapsed ? "Expandir menú" : "Contraer menú"}
-            className="flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-[13px] text-muted transition-colors hover:bg-surface-2 hover:text-fg"
+            className="flex h-11 w-full items-center gap-3 rounded-full px-4 text-[15px] text-muted transition-colors hover:bg-surface-2 hover:text-fg"
           >
             {collapsed ? <PanelLeftOpen size={16} className="mx-auto" /> : <PanelLeftClose size={16} />}
             {!collapsed && <span>Contraer</span>}

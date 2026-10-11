@@ -39,7 +39,7 @@ const toneClasses = {
   neutral: "bg-surface-2 text-muted border-line",
   info: "bg-info/12 text-info border-info/25",
   warning: "bg-warning/12 text-warning border-warning/25",
-  accent: "bg-accent-soft text-accent border-accent/25",
+  accent: "bg-accent-soft text-brand border-brand/25",
   success: "bg-success/12 text-success border-success/25",
   danger: "bg-danger/10 text-danger border-danger/25",
 };

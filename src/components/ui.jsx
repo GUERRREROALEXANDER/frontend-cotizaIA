@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Loader2 } from "lucide-react";
-import { CountUp } from "../motion/Motion.jsx";
+import { CountUp, MaskedText } from "../motion/Motion.jsx";
 import { duration, ease } from "../motion/presets.js";
 import { fieldClass } from "./fields.jsx";
 
@@ -34,16 +34,20 @@ export function formatRelative(value) {
   return rtf.format(seconds, "second");
 }
 
+// Wise shape language: every button is a pill. Lime fill is the single
+// primary action; secondary is an outlined forest pill.
 export const buttonVariants = {
   primary: "bg-accent text-accent-fg hover:bg-accent-hover border-transparent",
-  secondary: "bg-surface-2 text-fg border-line hover:border-line-strong hover:bg-surface",
+  secondary: "bg-transparent text-brand border-brand/70 hover:bg-accent-soft hover:border-brand",
   ghost: "bg-transparent text-muted border-transparent hover:bg-surface-2 hover:text-fg",
-  danger: "bg-transparent text-danger border-line hover:border-danger hover:bg-danger/10",
+  danger: "bg-transparent text-danger border-danger/40 hover:border-danger hover:bg-danger/10",
+  ink: "bg-ink text-ink-fg border-transparent hover:bg-ink-2",
 };
 
 const buttonSizes = {
-  sm: "h-8 px-3 text-xs gap-1.5",
-  md: "h-9 px-3.5 text-[13px] gap-2",
+  sm: "h-9 px-4 text-[13px] gap-1.5",
+  md: "h-11 px-5 text-[15px] gap-2",
+  lg: "h-13 px-7 text-base gap-2.5",
 };
 
 // Loading swaps the icon for a spinner in place, so the label never jumps.
@@ -60,10 +64,10 @@ export const Button = forwardRef(function Button(
       transition={{ duration: duration.micro, ease: ease.out }}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={`inline-flex shrink-0 items-center justify-center rounded-lg border font-medium transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariants[variant]} ${buttonSizes[size]} ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-full border font-medium transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariants[variant]} ${buttonSizes[size]} ${className}`}
       {...props}
     >
-      {loading ? <Loader2 size={14} className="animate-spin" aria-hidden /> : Icon ? <Icon size={14} aria-hidden /> : null}
+      {loading ? <Loader2 size={16} className="animate-spin" aria-hidden /> : Icon ? <Icon size={16} aria-hidden /> : null}
       {children}
     </motion.button>
   );
@@ -76,12 +80,12 @@ export const IconButton = forwardRef(function IconButton({ icon: Icon, label, cl
       type="button"
       aria-label={label}
       title={label}
-      className={`relative grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted transition-colors duration-200 hover:bg-surface-2 hover:text-fg ${className}`}
+      className={`relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-muted transition-colors duration-200 hover:bg-surface-2 hover:text-fg ${className}`}
       {...props}
     >
-      <Icon size={16} aria-hidden />
+      <Icon size={18} aria-hidden />
       {badge ? (
-        <span className="absolute right-1 top-1 grid min-w-4 place-items-center rounded-full bg-accent px-1 font-mono text-[10px] leading-4 text-accent-fg">
+        <span className="absolute right-0.5 top-0.5 grid min-w-[18px] place-items-center rounded-full bg-accent px-1 font-mono text-[10px] font-semibold leading-[18px] text-accent-fg ring-2 ring-surface">
           {badge > 99 ? "99+" : badge}
         </span>
       ) : null}
@@ -91,20 +95,31 @@ export const IconButton = forwardRef(function IconButton({ icon: Icon, label, cl
 
 export function Panel({ as: Component = "section", children, className = "", ...props }) {
   return (
-    <Component className={`rounded-xl border border-line bg-surface shadow-card ${className}`} {...props}>
+    <Component className={`rounded-xl bg-surface shadow-card ${className}`} {...props}>
       {children}
     </Component>
   );
 }
 
+// Inverted forest section (Wise "dark section card"): lime headline on ink.
+export function InkPanel({ as: Component = "section", children, className = "", ...props }) {
+  return (
+    <Component className={`relative overflow-hidden rounded-2xl bg-ink text-ink-text ${className}`} {...props}>
+      {children}
+    </Component>
+  );
+}
+
+// Page titles are the brand's shout: ultra-heavy display type revealed word
+// by word through a mask.
 export function PageHeader({ title, description, actions }) {
   return (
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <header className="mb-8 flex flex-wrap items-end justify-between gap-5">
       <div className="min-w-0">
-        <h1 className="text-2xl font-semibold tracking-tight text-fg">{title}</h1>
-        {description && <p className="mt-1 max-w-[68ch] text-[13px] text-muted">{description}</p>}
+        <MaskedText as="h1" text={title} className="display block text-[clamp(2.5rem,5vw,4rem)] text-fg" />
+        {description && <p className="mt-3 max-w-[60ch] text-base text-muted">{description}</p>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2.5">{actions}</div>}
     </header>
   );
 }
@@ -113,8 +128,8 @@ export function SectionHeading({ title, description, action }) {
   return (
     <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h2 className="text-base font-semibold text-fg">{title}</h2>
-        {description && <p className="mt-0.5 text-xs text-muted">{description}</p>}
+        <h2 className="text-lg font-bold tracking-tight text-fg">{title}</h2>
+        {description && <p className="mt-0.5 text-sm text-muted">{description}</p>}
       </div>
       {action}
     </div>
@@ -126,23 +141,27 @@ export function SectionHeading({ title, description, action }) {
 export function KpiTile({ icon: Icon, label, value, format, detail, delta, children, className = "" }) {
   const numeric = typeof value === "number";
   return (
-    <Panel className={`flex flex-col gap-3 p-4 ${className}`}>
+    <Panel className={`flex flex-col gap-4 p-6 transition-shadow duration-300 hover:shadow-lift ${className}`}>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-muted">{label}</span>
-        {Icon && <Icon size={15} className="text-faint" aria-hidden />}
+        <span className="text-sm font-medium text-muted">{label}</span>
+        {Icon && (
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-brand">
+            <Icon size={17} aria-hidden />
+          </span>
+        )}
       </div>
       <div className="flex items-baseline gap-2">
-        <span className="font-mono text-2xl font-medium tracking-tight text-fg">
+        <span className="display text-[2.75rem] text-fg">
           {numeric ? <CountUp value={value} format={format} /> : value}
         </span>
         {delta != null && (
-          <span className={`font-mono text-xs ${delta >= 0 ? "text-success" : "text-danger"}`}>
+          <span className={`text-sm font-semibold ${delta >= 0 ? "text-success" : "text-danger"}`}>
             {delta >= 0 ? "+" : ""}
             {delta}%
           </span>
         )}
       </div>
-      {detail && <p className="text-xs text-faint">{detail}</p>}
+      {detail && <p className="text-sm text-faint">{detail}</p>}
       {children}
     </Panel>
   );
@@ -155,14 +174,14 @@ export function MetricCard({ icon, label, value, detail }) {
 
 export function EmptyState({ icon: Icon, title, description, action }) {
   return (
-    <div className="flex min-h-48 flex-col items-center justify-center px-6 py-10 text-center">
+    <div className="flex min-h-56 flex-col items-center justify-center px-6 py-12 text-center">
       {Icon && (
-        <span className="mb-4 grid h-11 w-11 place-items-center rounded-xl border border-line bg-surface-2 text-muted">
-          <Icon size={20} strokeWidth={1.6} aria-hidden />
+        <span className="mb-5 grid h-14 w-14 place-items-center rounded-full bg-accent-soft text-brand">
+          <Icon size={24} strokeWidth={1.8} aria-hidden />
         </span>
       )}
-      <h3 className="text-sm font-medium text-fg">{title}</h3>
-      {description && <p className="mt-1.5 max-w-sm text-xs leading-5 text-muted">{description}</p>}
+      <h3 className="text-lg font-bold tracking-tight text-fg">{title}</h3>
+      {description && <p className="mt-2 max-w-sm text-sm leading-6 text-muted">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   );
@@ -217,17 +236,17 @@ export const statusLabels = {
 };
 
 const toneClass = {
-  neutral: "bg-surface-2 text-muted border-line",
-  info: "bg-info/12 text-info border-info/25",
-  warning: "bg-warning/12 text-warning border-warning/25",
-  accent: "bg-accent-soft text-accent border-accent/25",
-  success: "bg-success/12 text-success border-success/25",
-  danger: "bg-danger/10 text-danger border-danger/25",
+  neutral: "bg-surface-2 text-muted border-transparent",
+  info: "bg-info/10 text-info border-transparent",
+  warning: "bg-warning/12 text-warning border-transparent",
+  accent: "bg-accent-soft text-brand border-transparent",
+  success: "bg-ink text-ink-fg border-transparent",
+  danger: "bg-danger/10 text-danger border-transparent",
 };
 
 export function Badge({ tone = "neutral", children, className = "" }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium ${toneClass[tone]} ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${toneClass[tone]} ${className}`}>
       {children}
     </span>
   );
@@ -245,6 +264,6 @@ export function StatusBadge({ status }) {
 
 // v1 string classes, now token-based, so untouched call sites keep working.
 export const buttonClass =
-  "inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-surface-2 px-3.5 h-9 text-[13px] font-medium text-fg transition-colors duration-200 hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-full border border-brand/70 bg-transparent px-5 h-11 text-[15px] font-medium text-brand transition-colors duration-200 hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-50";
 
 export const inputClass = fieldClass;

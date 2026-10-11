@@ -57,3 +57,29 @@ export function CountUp({ value, format = (n) => Math.round(n).toLocaleString("e
 
   return <span ref={ref} className={`tabular ${className || ""}`}>{format(shown)}</span>;
 }
+
+// Masked reveal: each word rises out of its own clipped line box, so a title
+// "types itself" upward. Reduced motion renders the text immediately.
+export function MaskedText({ text, as = "span", className = "", delay = 0 }) {
+  const reduce = useReducedMotion();
+  const Component = as;
+  const words = String(text).split(" ");
+  if (reduce) return <Component className={className}>{text}</Component>;
+  return (
+    <Component className={className} aria-label={text}>
+      {words.map((word, index) => (
+        <span key={`${word}-${index}`} aria-hidden className="inline-block overflow-hidden pb-[0.08em] align-bottom">
+          <motion.span
+            className="inline-block"
+            initial={{ y: "110%" }}
+            animate={{ y: 0 }}
+            transition={{ duration: duration.reveal, ease: ease.out, delay: delay + index * 0.06 }}
+          >
+            {word}
+            {index < words.length - 1 ? " " : ""}
+          </motion.span>
+        </span>
+      ))}
+    </Component>
+  );
+}

@@ -9,7 +9,7 @@ function readStoredTheme() {
   } catch {
     // Private mode or blocked storage: fall back to the default theme.
   }
-  return "dark";
+  return "light";
 }
 
 // index.html sets data-theme before React mounts, so this hook only keeps the
@@ -19,7 +19,7 @@ export function useTheme() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#1c1a17" : "#f8f6f2");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#0b0d09" : "#f4f6f1");
     try {
       window.localStorage.setItem(themeStorageKey, theme);
     } catch {

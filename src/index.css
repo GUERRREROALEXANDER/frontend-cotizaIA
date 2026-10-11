@@ -1,5 +1,6 @@
 @import "tailwindcss";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/inter-tight";
 @import "@fontsource-variable/geist-mono";
 @import "./theme/tokens.css";
 
@@ -14,10 +15,15 @@
   --color-fg: var(--text);
   --color-muted: var(--text-muted);
   --color-faint: var(--text-faint);
+  --color-brand: var(--brand);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-fg: var(--accent-fg);
   --color-accent-soft: var(--accent-soft);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-fg: var(--ink-fg);
+  --color-ink-text: var(--ink-text);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -27,12 +33,15 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --font-sans: "Geist Variable", system-ui, sans-serif;
+  --font-sans: "Inter Variable", system-ui, sans-serif;
+  --font-display: "Inter Tight Variable", "Inter Variable", system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, monospace;
-  --radius-md: 6px;
+  --radius-md: 8px;
   --radius-lg: 10px;
-  --radius-xl: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
   --shadow-card: var(--shadow-sm);
+  --shadow-lift: var(--shadow-lift);
   --shadow-overlay: var(--shadow-overlay);
   --ease-out: var(--ease-out);
   --ease-fluid: var(--ease-fluid);
@@ -44,6 +53,7 @@
     color: var(--text);
     font-family: var(--font-sans);
     font-size: 16px;
+    font-feature-settings: "cv11", "ss01";
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -53,22 +63,30 @@
     min-width: 360px;
     min-height: 100dvh;
     margin: 0;
-    font-size: 0.8125rem;
+    font-size: 0.9375rem;
     line-height: 1.5;
+    letter-spacing: -0.006em;
     background: var(--bg);
     transition: background-color var(--dur-panel) var(--ease-out), color var(--dur-panel) var(--ease-out);
   }
-  h1, h2, h3 { text-wrap: balance; }
+  h1, h2, h3 { text-wrap: balance; letter-spacing: -0.011em; }
   p { text-wrap: pretty; }
   button, input, textarea, select { font: inherit; color: inherit; }
   button { -webkit-tap-highlight-color: transparent; }
   ::selection { background: var(--accent); color: var(--accent-fg); }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
   ::placeholder { color: var(--text-faint); }
 }
 
 @layer utilities {
   .tabular { font-variant-numeric: tabular-nums; }
+  /* The shout: ultra-heavy, tightly tracked display type (Wise Sans stand-in). */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: -0.035em;
+    line-height: 0.9;
+  }
   .scrollbar-subtle { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
   .glass-bar {
     background: var(--topbar-glass);
@@ -93,8 +111,7 @@
 }
 .limit-shake { animation: limit-shake 180ms var(--ease-out); }
 
-/* Agent city illustration (PipelineView). Kept from v1; the pipeline stage
-   retunes it for both themes. */
+/* Agent city illustration (PipelineView). */
 .agent-city {
   background:
     radial-gradient(ellipse at 14% 2%, oklch(1 0 0 / .88), transparent 46%),

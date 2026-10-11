@@ -61,7 +61,7 @@ export function AttentionList({ queue = [], onOpenProposal, onNavigate, classNam
             <button
               type="button"
               onClick={() => setExpanded(true)}
-              className="text-xs font-medium text-accent transition-colors duration-200 hover:text-accent-hover"
+              className="text-xs font-medium text-brand transition-colors duration-200 hover:text-accent-hover"
             >
               Ver {hidden} más
             </button>

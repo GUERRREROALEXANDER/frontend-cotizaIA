@@ -71,7 +71,7 @@ export default function PdfDropzone({ file, onFileChange, onReject, disabled = f
             validateAndEmit(event.dataTransfer?.files?.[0]);
           }}
           className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-6 py-8 text-center outline-none transition-colors duration-200 focus-visible:ring-3 focus-visible:ring-accent-soft ${
-            dragOver ? "border-accent bg-accent-soft" : "border-line-strong bg-surface-2 hover:border-accent"
+            dragOver ? "border-brand bg-accent-soft" : "border-line-strong bg-surface-2 hover:border-brand"
           } ${disabled ? "cursor-not-allowed opacity-55" : ""}`}
         >
           <span className="grid h-11 w-11 place-items-center rounded-xl border border-line bg-surface text-muted">
@@ -100,7 +100,7 @@ export default function PdfDropzone({ file, onFileChange, onReject, disabled = f
           transition={{ duration: duration.state, ease: ease.out }}
           className="mt-3 flex items-center gap-3 rounded-xl border border-line bg-surface-2 px-3.5 py-3"
         >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-brand">
             <FileText size={16} aria-hidden />
           </span>
           <span className="min-w-0 flex-1">

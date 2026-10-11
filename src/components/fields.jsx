@@ -2,8 +2,9 @@ import { forwardRef, useId, useState } from "react";
 import { toast } from "sonner";
 import { COUNTER_VISIBLE_FROM, COUNTER_WARNING_FROM } from "../limits.js";
 
+// Wise input: 10px radius, pebble hairline, forest border on focus.
 export const fieldClass =
-  "w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-[13px] text-fg outline-none transition-[border-color,box-shadow,background-color] duration-200 ease-out placeholder:text-faint hover:border-line-strong focus:border-accent focus:ring-3 focus:ring-accent-soft disabled:cursor-not-allowed disabled:opacity-55 aria-invalid:border-danger";
+  "w-full rounded-lg border border-line-strong bg-surface px-4 py-3 text-[15px] text-fg outline-none transition-[border-color,box-shadow,background-color] duration-200 ease-out placeholder:text-faint hover:border-brand/60 focus:border-brand focus:ring-4 focus:ring-accent-soft disabled:cursor-not-allowed disabled:opacity-55 aria-invalid:border-danger";
 
 // Label + control + hint/error row. Every form control goes through this so
 // spacing, error wording and ids stay consistent across screens.
@@ -11,13 +12,13 @@ export function Field({ label, hint, error, htmlFor, counter, className = "", ch
   return (
     <div className={className}>
       {label && (
-        <label htmlFor={htmlFor} className="mb-1.5 block text-xs font-medium text-muted">
+        <label htmlFor={htmlFor} className="mb-2 block text-sm font-semibold text-fg">
           {label}
         </label>
       )}
       {children}
       {(hint || error || counter) && (
-        <div className="mt-1.5 flex items-start justify-between gap-3 text-[11px] leading-4">
+        <div className="mt-2 flex items-start justify-between gap-3 text-xs leading-4">
           <span id={htmlFor ? `${htmlFor}-msg` : undefined} className={error ? "text-danger" : "text-faint"} role={error ? "alert" : undefined}>
             {error || hint}
           </span>

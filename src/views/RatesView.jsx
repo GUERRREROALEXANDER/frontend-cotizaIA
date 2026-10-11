@@ -256,7 +256,7 @@ export default function RatesView() {
                       className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-2 py-1.5 text-left"
                     >
                       <span
-                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${active ? "bg-accent-soft text-accent" : "border border-line bg-surface text-muted"}`}
+                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${active ? "bg-accent-soft text-brand" : "border border-line bg-surface text-muted"}`}
                       >
                         <UserRound size={15} aria-hidden />
                       </span>

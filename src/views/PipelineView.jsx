@@ -155,7 +155,7 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
               <h2 className="text-sm font-semibold text-fg">Cadena de procesamiento</h2>
               <p className="mt-0.5 text-xs text-muted">Responsabilidad encadenada, evidencia por etapa</p>
             </div>
-            <span className="rounded-full border border-accent/25 bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent">
+            <span className="rounded-full border border-brand/25 bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-brand">
               Agente IA
             </span>
           </div>

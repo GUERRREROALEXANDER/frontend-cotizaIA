@@ -61,7 +61,7 @@ export function ProposalItemsTable({ items, extras, subtotal, total }) {
         </div>
         <div className="flex justify-between gap-4 text-base font-semibold">
           <span className="text-fg">Total de la propuesta</span>
-          <span className="font-mono text-accent tabular-nums">{formatCurrency(total)}</span>
+          <span className="font-mono text-brand tabular-nums">{formatCurrency(total)}</span>
         </div>
       </div>
     </div>

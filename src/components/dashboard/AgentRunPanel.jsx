@@ -11,7 +11,7 @@ export function AgentRunPanel({ activeExecution, recentExecution, onNavigate, cl
   return (
     <Panel className={`flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between ${className}`}>
       <div className="flex min-w-0 items-center gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-line bg-surface-2 text-accent">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-line bg-surface-2 text-brand">
           <Bot size={18} aria-hidden />
         </span>
         <div className="min-w-0">

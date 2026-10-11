@@ -46,7 +46,7 @@ function BrandLoop() {
       <div className="flex flex-col gap-3">
         {brandCards.map((card) => (
           <article key={card.id} className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-brand">
               <card.Icon size={16} aria-hidden />
             </span>
             <span>
@@ -72,7 +72,7 @@ function BrandLoop() {
           transition={{ duration: duration.state, ease: ease.out }}
           className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4"
         >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-brand">
             <card.Icon size={16} aria-hidden />
           </span>
           <span>

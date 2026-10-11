@@ -6,7 +6,7 @@ export function ProposalCard({ proposal, onClick, layoutId, selected = false }) 
     <motion.article
       layoutId={layoutId}
       onClick={onClick}
-      className={`group cursor-pointer rounded-lg border bg-surface p-3 transition-colors duration-200 hover:border-line-strong ${selected ? "border-accent/60 ring-1 ring-accent/30" : "border-line"}`}
+      className={`group cursor-pointer rounded-lg border bg-surface p-3 transition-colors duration-200 hover:border-line-strong ${selected ? "border-brand/60 ring-1 ring-brand/30" : "border-line"}`}
       layout
       transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
       whileHover={{ y: -2, transition: { duration: 0.12 } }}

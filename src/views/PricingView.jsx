@@ -154,7 +154,7 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
                 {pricingModel === id && (
                   <motion.div
                     layoutId="pricing-model-active"
-                    className="absolute inset-0 rounded-lg bg-accent-soft border border-accent/40"
+                    className="absolute inset-0 rounded-lg bg-accent-soft border border-brand/40"
                     initial={false}
                     transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
                   />
@@ -182,7 +182,7 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
             <label className="block text-xs text-muted">
               Propuesta
               <select
-                className="mt-2 w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-[13px] text-fg outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-faint hover:border-line-strong focus:border-accent focus:ring-3 focus:ring-accent-soft"
+                className="mt-2 w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-[13px] text-fg outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-faint hover:border-line-strong focus:border-brand focus:ring-3 focus:ring-accent-soft"
                 value={selectedProposalId}
                 onChange={(event) => setSelectedProposalId(event.target.value)}
               >
@@ -245,7 +245,7 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
                           step="0.1"
                           value={hoursDraft[item.id] ?? ""}
                           onChange={(event) => setHoursDraft({ ...hoursDraft, [item.id]: event.target.value })}
-                          className="w-20 rounded-md border border-line bg-surface-2 px-2.5 py-2 font-mono text-xs text-fg outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-faint hover:border-line-strong focus:border-accent focus:ring-3 focus:ring-accent-soft"
+                          className="w-20 rounded-md border border-line bg-surface-2 px-2.5 py-2 font-mono text-xs text-fg outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-faint hover:border-line-strong focus:border-brand focus:ring-3 focus:ring-accent-soft"
                         />
                       </label>
                       <span className="w-24 text-right font-mono text-sm text-muted tabular-nums">
@@ -326,7 +326,7 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
                       max="100"
                       value={discountRate}
                       onChange={(event) => setDiscountRate(event.target.value)}
-                      className="w-24 rounded-md border border-line bg-surface-2 px-3 py-2 font-mono text-xs text-fg outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-faint hover:border-line-strong focus:border-accent focus:ring-3 focus:ring-accent-soft"
+                      className="w-24 rounded-md border border-line bg-surface-2 px-3 py-2 font-mono text-xs text-fg outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-faint hover:border-line-strong focus:border-brand focus:ring-3 focus:ring-accent-soft"
                     />
                     <span className="text-muted">%</span>
                   </div>
@@ -337,9 +337,9 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.12 }}
-              className="mt-5 rounded-2xl border border-accent/15 bg-accent/5 p-5"
+              className="mt-5 rounded-2xl border border-brand/15 bg-accent/5 p-5"
             >
-              <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-accent">
+              <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-brand">
                 <Sparkles size={12} aria-hidden />
                 Estimación dinámica
               </div>
@@ -371,7 +371,7 @@ function ToggleRow({ icon: Icon, title, description, active, onToggle, tone }) {
     info: "bg-info/12 text-info border-info/25",
     success: "bg-success/12 text-success border-success/25",
     danger: "bg-danger/10 text-danger border-danger/25",
-    accent: "bg-accent-soft text-accent border-accent/25",
+    accent: "bg-accent-soft text-brand border-brand/25",
     neutral: "bg-surface-2 text-muted border-line",
   };
   const iconBgClasses = {
@@ -379,7 +379,7 @@ function ToggleRow({ icon: Icon, title, description, active, onToggle, tone }) {
     info: "bg-info/10 text-info",
     success: "bg-success/10 text-success",
     danger: "bg-danger/10 text-danger",
-    accent: "bg-accent-soft text-accent",
+    accent: "bg-accent-soft text-brand",
     neutral: "bg-surface-2 text-muted",
   };
   const activeColors = {

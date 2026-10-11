@@ -2,7 +2,7 @@ import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } fro
 import { ArrowUpRight, Bot, FileText, Inbox, Sparkles } from "lucide-react";
 
 const neighborhoods = [
-  { id: "inbox", label: "Briefs", icon: Inbox, count: "01", tone: "bg-accent-soft text-accent" },
+  { id: "inbox", label: "Briefs", icon: Inbox, count: "01", tone: "bg-accent-soft text-brand" },
   { id: "pipeline", label: "Análisis", icon: Bot, count: "02", tone: "bg-info/12 text-info" },
   { id: "pricing", label: "Cotización", icon: Sparkles, count: "03", tone: "bg-warning/12 text-warning" },
   { id: "proposals", label: "Revisión", icon: FileText, count: "04", tone: "bg-success/12 text-success" },

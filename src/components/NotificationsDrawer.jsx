@@ -30,7 +30,7 @@ function statusIcon(status) {
     return { Icon: XCircle, className: "text-danger" };
   }
   if (normalized === "SENT" || normalized === "NEGOTIATING") {
-    return { Icon: Send, className: "text-accent" };
+    return { Icon: Send, className: "text-brand" };
   }
   if (normalized === "IN_REVIEW") {
     return { Icon: Eye, className: "text-warning" };

@@ -208,7 +208,8 @@ export default function App() {
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar
-          title={currentView.title}
+          title={currentView.label}
+          group={currentView.group}
           user={user}
           theme={theme}
           onToggleTheme={toggleTheme}
@@ -220,7 +221,7 @@ export default function App() {
           onSignOut={signOut}
           onOpenMobileNav={() => setMobileNavOpen(true)}
         />
-        <main className="mx-auto w-full max-w-[1320px] flex-1 px-4 pb-16 pt-6 sm:px-6">
+        <main className="mx-auto w-full max-w-[1360px] flex-1 px-4 pb-20 pt-8 sm:px-8 sm:pt-10">
           {workspaceError && (
             <Panel className="mb-5 flex flex-wrap items-center justify-between gap-3 border-danger/30 bg-danger/5 px-4 py-3">
               <p role="alert" className="text-xs text-danger">No se pudo cargar toda la información: {workspaceError}</p>
