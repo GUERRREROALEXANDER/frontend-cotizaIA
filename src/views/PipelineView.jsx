@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useReducedMotion } from "framer-motion";
-import { ListChecks, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { get } from "../api.js";
 import AgentCity from "../components/AgentCity.jsx";
 import { LimitedInput } from "../components/fields.jsx";
 import { StageStepper } from "../components/pipeline/StageStepper.jsx";
 import { agentStages, executionDurationMs, formatDuration, isFlagged, stepsByHandler } from "../components/pipeline/stages.js";
-import { Button, EmptyState, InkPanel, Panel, SectionHeading, StatusBadge, formatDateTime } from "../components/ui.jsx";
+import { Button, InkPanel, Panel, StatusBadge, formatDateTime } from "../components/ui.jsx";
 import { MaskedText } from "../motion/Motion.jsx";
 
 const LAST_STAGE = agentStages.length - 1;
@@ -146,43 +146,14 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
 
       <div className="grid gap-4 xl:grid-cols-12">
         <Panel className="p-6 xl:col-span-5">
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-bold tracking-tight text-fg">Cadena de procesamiento</h2>
-              <p className="mt-0.5 text-sm text-muted">Responsabilidad encadenada, evidencia por etapa</p>
-            </div>
-            <span className="rounded-full border border-brand/25 bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-brand">
-              Agente IA
-            </span>
-          </div>
-
-          {showStepper ? (
-            <StageStepper
-              stages={mergedStages}
-              expanded={expanded}
-              onToggle={(handler) => setExpanded((current) => (current === handler ? null : handler))}
-              live={illustrative}
-              simulationStep={simulationStep}
-              reduce={reduce}
-            />
-          ) : (
-            <EmptyState
-              icon={execution ? ListChecks : Search}
-              title={execution ? "Sin pasos registrados" : "Aún no hay ejecuciones"}
-              description={
-                execution
-                  ? "La ejecución llegó sin etapas. Vuelve a consultar en unos segundos."
-                  : "Procesa un brief desde Bandeja para que el agente recorra las siete etapas, o busca un ID de brief en el formulario superior."
-              }
-            />
-          )}
-
-          {illustrative && (
-            <p className="mt-4 flex items-center gap-2 border-t border-line pt-3 text-sm text-muted">
-              <span className="motion-safe:h-1.5 motion-safe:w-1.5 motion-safe:animate-pulse motion-safe:rounded-full bg-accent" aria-hidden="true" />
-              Progreso ilustrativo. Los pasos confirmados aparecen en cuanto el análisis responde.
-            </p>
-          )}
+          <StageStepper
+            stages={mergedStages}
+            expanded={expanded}
+            onToggle={(handler) => setExpanded((current) => (current === handler ? null : handler))}
+            live={illustrative}
+            simulationStep={simulationStep}
+            reduce={reduce}
+          />
         </Panel>
 
         <div className="xl:col-span-7">
