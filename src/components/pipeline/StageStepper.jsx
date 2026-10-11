@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { AlertTriangle, Check, Clock3, FileSearch2, FileText, HelpCircle, ListFilter, PenLine, SkipForward, WandSparkles, X } from "lucide-react";
 import { Badge, Button } from "../ui.jsx";
@@ -92,10 +92,22 @@ function ShimmerSweep({ reduce }) {
   );
 }
 
-function Connector({ filled, reduce, index, totalSteps }) {
+function Connector({ filled, reduce, index, totalSteps, nodeHeight, gap }) {
   if (index === totalSteps - 1) return null;
+  const railHeight = nodeHeight + gap;
+  const topOffset = nodeHeight;
   return (
-    <span aria-hidden="true" className="absolute left-[24px] top-[56px] h-[calc(100%-52px)] w-[3px]" style={{ background: "var(--border)" }}>
+    <span
+      aria-hidden="true"
+      className="absolute"
+      style={{
+        left: "24px",
+        top: topOffset + "px",
+        width: "3px",
+        height: railHeight + "px",
+        background: "var(--border)",
+      }}
+    >
       <motion.span
         className="absolute inset-x-0 top-0 h-full origin-top"
         style={{ background: "linear-gradient(180deg, var(--accent), var(--chart-1))" }}
@@ -104,13 +116,16 @@ function Connector({ filled, reduce, index, totalSteps }) {
         transition={{ duration: reduce ? 0 : duration.reveal, ease: ease.out }}
       />
       {!filled && (
-        <span className="absolute inset-0 h-full" style={{ background: "repeating-linear-gradient(var(--border), var(--border) 6px, transparent 6px, transparent 12px)" }} />
+        <span
+          className="absolute inset-0 h-full"
+          style={{ background: "repeating-linear-gradient(var(--border), var(--border) 6px, transparent 6px, transparent 12px)" }}
+        />
       )}
     </span>
   );
 }
 
-function StepCard({ stage, index, status, expanded, onToggle, reduce }) {
+function StepCard({ stage, index, status, expanded, onToggle, reduce, nodeRefs, totalSteps, nodeHeight, gap }) {
   const {
     handler,
     label,
@@ -137,23 +152,24 @@ function StepCard({ stage, index, status, expanded, onToggle, reduce }) {
       ))
     : [];
 
+  const connectorFilled = done || running;
+
   return (
     <motion.li
+      ref={(el) => { nodeRefs.current[index] = el; }}
       key={handler}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: reduce ? duration.micro : duration.panel, ease: ease.out, delay: staggerDelay(index) }}
       className="relative"
     >
-      <Connector filled={done || running} index={index} totalSteps={7} reduce={reduce} />
-
       <button
         type="button"
         onClick={() => onToggle(handler)}
         aria-expanded={isExpanded}
         aria-controls={"stage-detail-" + handler}
         className={
-        "relative z-10 flex min-w-0 gap-4 rounded-2xl p-4 transition-colors duration-200 " +
+        "relative z-10 flex w-full min-w-0 gap-4 rounded-2xl p-4 text-left transition-colors duration-200 " +
         (done ? "bg-surface hover:bg-surface-2" :
         failed ? "bg-surface hover:bg-surface-2 border border-[var(--status-closed-bg)]" :
         running ? "bg-surface hover:bg-surface-2" :
@@ -161,11 +177,25 @@ function StepCard({ stage, index, status, expanded, onToggle, reduce }) {
         "bg-surface hover:bg-surface-2")
       }
       >
-        <div className="relative flex flex-col items-center shrink-0">
+        <div className="relative flex flex-col items-center shrink-0" style={{ minHeight: nodeHeight + "px" }}>
+          {index < totalSteps - 1 && (
+            // Rail to the next node: lives in this column so the opaque card
+            // background cannot cover it; extends past the card padding (p-4)
+            // and the list gap (space-y-1) to reach the next node.
+            <span aria-hidden="true" className="absolute left-1/2 top-12 -bottom-9 w-[3px] -translate-x-1/2 overflow-hidden rounded-full bg-[var(--border)]">
+              <motion.span
+                className="absolute inset-0 origin-top rounded-full"
+                style={{ background: "linear-gradient(180deg, var(--accent), var(--chart-1))" }}
+                initial={false}
+                animate={{ scaleY: connectorFilled ? 1 : 0 }}
+                transition={{ duration: reduce ? 0 : duration.reveal, ease: ease.out }}
+              />
+            </span>
+          )}
           <span
             className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full border-2"
             style={{
-              background: done ? stepColor : running ? "transparent" : failed ? "transparent" : skipped ? "transparent" : "transparent",
+              background: done ? stepColor : "transparent",
               borderColor: done ? stepColor : failed ? "var(--status-closed-fg)" : running ? stepColor : skipped ? "var(--border)" : "var(--border)",
               color: done ? "white" : running ? stepColor : failed ? "var(--status-closed-fg)" : skipped ? "var(--text-faint)" : "var(--text-faint)",
             }}
@@ -179,23 +209,23 @@ function StepCard({ stage, index, status, expanded, onToggle, reduce }) {
           </span>
 
           {running && (
-            <motion.span
-              className="absolute top-full left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-fg"
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: reduce ? 0 : duration.state, ease: ease.out }}
-            >
+            <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap">
               <BouncingDots reduce={reduce} />
-            </motion.span>
+            </span>
           )}
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 flex flex-col">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <span className="text-lg font-bold tracking-tight text-fg">{label}</span>
             <span className="inline-flex items-center rounded-full border border-line bg-surface-2 px-2.5 py-0.5 tabular font-mono text-[11px] text-faint">
               {durationText}
             </span>
+            {running && (
+              <span className="inline-flex items-center gap-1.5 font-mono text-xs text-faint">
+                <BouncingDots reduce={reduce} />
+              </span>
+            )}
           </div>
 
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -241,18 +271,18 @@ function StepCard({ stage, index, status, expanded, onToggle, reduce }) {
 }
 
 function ProgressPill({ completed, total, reduce }) {
-  const pct = total > 0 ? (completed / total) * 100 : 0;
+  const pct = total > 0 ? completed / total : 0;
   return (
     <div className="flex items-center gap-3 shrink-0">
       <span className="text-sm font-semibold text-fg whitespace-nowrap">
         {completed} de {total}
       </span>
-      <div className="relative h-3 w-32 shrink-0 rounded-full bg-surface-2 overflow-hidden">
+      <div className="relative h-2 w-28 shrink-0 rounded-full bg-surface-2 overflow-hidden">
         <motion.div
-          className="absolute inset-y-0 left-0 rounded-full"
+          className="absolute inset-0 origin-left rounded-full"
           style={{ background: "var(--accent)" }}
-          initial={false}
-          animate={{ scaleX: [0, pct / 100] }}
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: pct }}
           transition={{ duration: reduce ? 0 : duration.reveal, ease: ease.out }}
         />
       </div>
@@ -262,6 +292,9 @@ function ProgressPill({ completed, total, reduce }) {
 
 function GhostDemo({ reduce }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const nodeRefs = useRef([]);
+  const nodeHeight = 60;
+  const gap = 8;
 
   useEffect(() => {
     if (reduce) return undefined;
@@ -283,16 +316,29 @@ function GhostDemo({ reduce }) {
           };
           const stepColor = STEP_COLORS[i];
           const isActive = i === activeIndex;
+          const filled = i < activeIndex;
 
           return (
-            <motion.li key={stage.handler} className="relative" style={{ transition: "opacity 0.3s" }}>
-              <Connector filled={i < activeIndex} index={i} totalSteps={7} reduce={true} />
-              <div className="relative flex gap-4 rounded-2xl p-4 bg-surface/50">
-                <div className="relative flex flex-col items-center shrink-0">
+            <motion.li
+              ref={(el) => { nodeRefs.current[i] = el; }}
+              key={stage.handler}
+              className="relative"
+              style={{ transition: "opacity 0.3s" }}
+            >
+              <Connector
+                filled={filled}
+                index={i}
+                totalSteps={7}
+                reduce={true}
+                nodeHeight={nodeHeight}
+                gap={gap}
+              />
+              <div className="relative flex gap-4 rounded-2xl p-4 bg-surface/50" style={{ minHeight: nodeHeight + "px" }}>
+                <div className="relative flex flex-col items-center shrink-0" style={{ minHeight: nodeHeight + "px" }}>
                   <span
                     className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full border-2"
                     style={{
-                      background: isActive ? "transparent" : "transparent",
+                      background: "transparent",
                       borderColor: isActive ? stepColor : "var(--border)",
                       color: isActive ? stepColor : "var(--text-faint)",
                     }}
@@ -304,18 +350,18 @@ function GhostDemo({ reduce }) {
                       <stage.icon size={16} aria-hidden="true" />
                     )}
                   </span>
-                  {isActive && (
-                    <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-fg">
-                      <BouncingDots reduce={true} />
-                    </span>
-                  )}
                 </div>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 flex flex-col">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                     <span className="text-lg font-bold tracking-tight text-fg">{stage.label}</span>
                     <span className="inline-flex items-center rounded-full border border-line bg-surface-2 px-2.5 py-0.5 tabular font-mono text-[11px] text-faint">
                       {isActive ? "en curso" : "por ejecutar"}
                     </span>
+                    {isActive && (
+                      <span className="inline-flex items-center gap-1.5 font-mono text-xs text-faint">
+                        <BouncingDots reduce={true} />
+                      </span>
+                    )}
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="font-mono text-xs text-faint">{stage.handler}</span>
@@ -334,13 +380,15 @@ function GhostDemo({ reduce }) {
   );
 }
 
-
 export function StageStepper({ stages, expanded, onToggle, live, simulationStep, reduce }) {
   const executionSteps = stages.filter((s) => s.result);
   const completedCount = executionSteps.filter((s) => ["SUCCEEDED", "SUCCESS", "COMPLETED"].includes(String(s.result?.status || "").toUpperCase())).length;
 
   const hasExecution = stages.some((s) => s.result);
   const isLive = live || stages.some((s) => String(s.result?.status || "").toUpperCase() === "RUNNING");
+  const nodeRefs = useRef([]);
+  const nodeHeight = 60;
+  const gap = 8;
 
   if (!hasExecution && !isLive) {
     return (
@@ -384,6 +432,10 @@ export function StageStepper({ stages, expanded, onToggle, live, simulationStep,
               expanded={expanded}
               onToggle={onToggle}
               reduce={reduce}
+              nodeRefs={nodeRefs}
+              totalSteps={7}
+              nodeHeight={nodeHeight}
+              gap={gap}
             />
           );
         })}

@@ -115,20 +115,29 @@ export default function DashboardView({
         <>
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-5">
             <StaggerItem index={0} className="sm:col-span-2 xl:col-span-2" whileHover={lift}>
-              <KpiTile
-                icon={FileText}
-                label="Propuestas"
-                value={totalProposals}
-                detail="Histórico de tu agencia"
-                className="h-full"
+              <Panel
+                className="flex h-full flex-col gap-4 p-6 transition-shadow duration-300 hover:shadow-lift"
+                style={{ background: "linear-gradient(135deg, var(--accent) 0%, var(--chart-fill) 45%, var(--chart-4) 130%)" }}
               >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium" style={{ color: "var(--accent-fg)" }}>Propuestas</span>
+                  <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-ink-fg">
+                    <FileText size={17} aria-hidden />
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="display text-[2.75rem]" style={{ color: "var(--accent-fg)" }}>
+                    <CountUp value={totalProposals} />
+                  </span>
+                </div>
+                <p className="text-sm opacity-80" style={{ color: "var(--accent-fg)" }}>Histórico de tu agencia</p>
                 <div className="h-12" aria-hidden="true">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={spark} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
                       <Line
                         type="monotone"
                         dataKey="count"
-                        stroke="var(--chart-1)"
+                        stroke="var(--ink)"
                         strokeWidth={2}
                         dot={false}
                         isAnimationActive={!reduce}
@@ -137,7 +146,7 @@ export default function DashboardView({
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
-              </KpiTile>
+              </Panel>
             </StaggerItem>
             <StaggerItem index={1} whileHover={lift}>
               <KpiTile
