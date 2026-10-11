@@ -1,17 +1,23 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { motion, LayoutGroup, AnimatePresence } from "framer-motion";
-import { ChevronDown, FileText, LayoutDashboard, List } from "lucide-react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { LayoutDashboard, List } from "lucide-react";
 import { get, post } from "../api.js";
 import { toast } from "sonner";
-import { Panel, SectionHeading, formatRelative } from "../components/ui.jsx";
-import { ProposalKanban } from "../components/proposals/ProposalKanban.jsx";
+import { PageHeader, Panel, formatCurrency } from "../components/ui.jsx";
+import { CountUp, StaggerItem } from "../motion/Motion.jsx";
+import { ProposalKanban, summarizeProposals } from "../components/proposals/ProposalKanban.jsx";
 import { ProposalTable } from "../components/proposals/ProposalTable.jsx";
 import { ProposalDetailPanel } from "../components/proposals/ProposalDetailPanel.jsx";
-import { duration, ease, viewTransition } from "../motion/presets.js";
+import { duration, ease, reducedFade, viewTransition } from "../motion/presets.js";
 
 const STORAGE_KEY = "cotizaia.proposalsMode";
 
-export default function ProposalsView({ proposals, queue, onRefresh, focusProposalId, onFocusHandled }) {
+const MODES = [
+  { id: "list", label: "Lista", icon: List },
+  { id: "board", label: "Tablero", icon: LayoutDashboard },
+];
+
+export default function ProposalsView({ proposals, onRefresh, focusProposalId, onFocusHandled }) {
   const [mode, setMode] = useState(() => {
     try {
       return window.localStorage.getItem(STORAGE_KEY) || "board";
@@ -26,7 +32,8 @@ export default function ProposalsView({ proposals, queue, onRefresh, focusPropos
   const [error, setError] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [detailOpen, setDetailOpen] = useState(false);
-  const detailRef = useRef(null);
+  const reduce = useReducedMotion();
+  const messageMotion = reduce ? reducedFade : viewTransition;
 
   const persistMode = useCallback((newMode) => {
     try {
@@ -124,64 +131,78 @@ export default function ProposalsView({ proposals, queue, onRefresh, focusPropos
     }
   }, [detail]);
 
-  const queueCount = queue.length;
+  const summary = useMemo(() => summarizeProposals(proposals), [proposals]);
+  const stats = [
+    { id: "in-play", label: "Total en juego", value: summary.inPlay, format: formatCurrency },
+    { id: "review", label: "Por revisar", value: summary.review },
+    { id: "sent", label: "Enviadas", value: summary.sent },
+    { id: "won", label: "Ganadas", value: summary.won },
+  ];
 
   return (
     <div className="portal-in">
-      <SectionHeading
+      <PageHeader
         title="Propuestas"
         description="Revisa, aprueba y gestiona el ciclo de vida de tus propuestas comerciales."
-        action={
-          <div className="flex items-center gap-2">
-            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-[11px] font-mono text-muted">
-              {queueCount} en cola
-            </span>
-            <div className="relative inline-flex h-9 w-[160px] items-center rounded-lg border border-line bg-surface">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={mode === "list"}
-                onClick={() => { setMode("list"); persistMode("list"); }}
-                className={`relative z-10 flex-1 flex items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors ${
-                  mode === "list" ? "text-fg" : "text-muted hover:text-fg"
-                }`}
-              >
-                <List size={14} aria-hidden /> Lista
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={mode === "board"}
-                onClick={() => { setMode("board"); persistMode("board"); }}
-                className={`relative z-10 flex-1 flex items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors ${
-                  mode === "board" ? "text-fg" : "text-muted hover:text-fg"
-                }`}
-              >
-                <LayoutDashboard size={14} aria-hidden /> Tablero
-              </button>
-              <motion.div
-                layoutId="mode-indicator"
-                className="absolute left-0.5 top-0.5 h-[calc(100%-4px)] w-1/2 origin-center rounded-md bg-accent transition-transform duration-200 ease-fluid"
-                initial={false}
-                animate={{ x: mode === "board" ? "100%" : 0 }}
-              />
-            </div>
+        actions={
+          <div role="tablist" aria-label="Vista de propuestas" className="inline-flex h-11 items-center rounded-full border border-line bg-surface p-1">
+            {MODES.map((option) => {
+              const active = mode === option.id;
+              const Icon = option.icon;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => { setMode(option.id); persistMode(option.id); }}
+                  className={`relative inline-flex h-9 items-center gap-2 rounded-full px-5 text-sm font-medium transition-colors duration-200 ${
+                    active ? "text-accent-fg" : "text-muted hover:text-fg"
+                  }`}
+                >
+                  {active && (
+                    <motion.span
+                      layoutId="proposals-mode-pill"
+                      transition={{ duration: duration.state, ease: ease.fluid }}
+                      className="absolute inset-0 rounded-full bg-accent"
+                      aria-hidden
+                    />
+                  )}
+                  <Icon size={16} className="relative" aria-hidden />
+                  <span className="relative">{option.label}</span>
+                </button>
+              );
+            })}
           </div>
         }
       />
 
       {error && (
         <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 rounded-xl border border-danger/25 bg-danger/5 px-4 py-3 text-sm text-danger"
+          {...messageMotion}
+          className="mb-6 rounded-2xl bg-danger/10 px-5 py-4 text-sm font-medium text-danger"
           role="alert"
         >
           {error}
         </motion.div>
       )}
 
-      <div className="flex flex-col gap-4">
+      <div className="mb-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {stats.map((stat, index) => (
+          <StaggerItem
+            key={stat.id}
+            index={index}
+            className="flex items-center justify-between gap-4 rounded-full bg-surface px-5 py-3 shadow-card"
+          >
+            <span className="text-sm font-medium text-muted">{stat.label}</span>
+            <span className="display tabular text-[28px] text-fg">
+              <CountUp value={stat.value} format={stat.format} />
+            </span>
+          </StaggerItem>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-8">
         {/* The board is its own surface (columns); only the table sits in a Panel. */}
         <AnimatePresence mode="wait" initial={false}>
           <motion.div key={mode} {...viewTransition}>
@@ -214,17 +235,14 @@ export default function ProposalsView({ proposals, queue, onRefresh, focusPropos
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: duration.panel, ease: ease.fluid }}
             >
-              <Panel>
-                <ProposalDetailPanel
-                  ref={detailRef}
-                  detail={detail}
-                  proposals={proposals}
-                  onAction={handleAction}
-                  onClose={handleCloseDetail}
-                  working={working}
-                  onDownload={handleDownload}
-                />
-              </Panel>
+              <ProposalDetailPanel
+                detail={detail}
+                proposals={proposals}
+                onAction={handleAction}
+                onClose={handleCloseDetail}
+                working={working}
+                onDownload={handleDownload}
+              />
             </motion.div>
           )}
         </AnimatePresence>

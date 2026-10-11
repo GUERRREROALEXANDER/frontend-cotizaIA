@@ -2,7 +2,7 @@ import { Panel, Skeleton } from "../ui.jsx";
 
 function TileSkeleton() {
   return (
-    <Panel className="flex flex-col gap-3 p-4">
+    <Panel className="flex flex-col gap-3 p-6">
       <div className="flex items-center justify-between gap-2">
         <Skeleton className="h-3 w-24" />
         <Skeleton className="h-4 w-4 rounded-md" />
@@ -15,7 +15,7 @@ function TileSkeleton() {
 
 function ChartSkeleton({ className = "" }) {
   return (
-    <Panel className={`p-5 ${className}`}>
+    <Panel className={`p-6 ${className}`}>
       <Skeleton className="h-4 w-44" />
       <Skeleton className="mt-2 h-3 w-56" />
       <Skeleton className="mt-5 h-[240px] w-full rounded-lg" />
@@ -25,7 +25,7 @@ function ChartSkeleton({ className = "" }) {
 
 function ListSkeleton({ rows = 4, className = "" }) {
   return (
-    <Panel className={`p-5 ${className}`}>
+    <Panel className={`p-6 ${className}`}>
       <Skeleton className="h-4 w-36" />
       <Skeleton className="mt-2 h-3 w-44" />
       <ul className="mt-4 space-y-3">
@@ -44,14 +44,14 @@ function ListSkeleton({ rows = 4, className = "" }) {
 // Shown while /api/analytics is in flight.
 export function DashboardSkeleton() {
   return (
-    <div className="space-y-4" aria-busy="true" aria-live="polite">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="space-y-8" aria-busy="true" aria-live="polite">
+      <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
         <TileSkeleton />
         <TileSkeleton />
         <TileSkeleton />
         <TileSkeleton />
       </div>
-      <div className="grid gap-4 xl:grid-cols-12">
+      <div className="grid gap-6 xl:grid-cols-12">
         <ChartSkeleton className="xl:col-span-7" />
         <ListSkeleton className="xl:col-span-5" />
         <ChartSkeleton className="xl:col-span-8" />

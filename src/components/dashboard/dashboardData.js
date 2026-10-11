@@ -60,6 +60,34 @@ export function buildValueSeries(proposals, days = 14) {
   }));
 }
 
+// Counts proposals per local day across the last `days` days (sparkline input).
+export function buildCountSeries(proposals, days = 14) {
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+  const start = new Date(end.getTime() - (days - 1) * DAY_MS);
+  start.setHours(0, 0, 0, 0);
+
+  const buckets = new Map();
+  for (let index = 0; index < days; index += 1) {
+    const day = new Date(start.getTime() + index * DAY_MS);
+    buckets.set(dayKey(day), { date: day, count: 0 });
+  }
+
+  for (const proposal of proposals || []) {
+    const created = new Date(proposal?.createdAt);
+    if (Number.isNaN(created.getTime())) continue;
+    const bucket = buckets.get(dayKey(created));
+    if (bucket) bucket.count += 1;
+  }
+
+  const dayLabel = new Intl.DateTimeFormat("es-CO", { day: "2-digit", month: "short" });
+  return [...buckets.values()].map(({ date, count }) => ({
+    date,
+    label: dayLabel.format(date).replace(".", ""),
+    count,
+  }));
+}
+
 const compactCop = new Intl.NumberFormat("es-CO", {
   notation: "compact",
   compactDisplay: "short",

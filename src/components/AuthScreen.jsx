@@ -1,96 +1,105 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import Logo from "./brand/Logo.jsx";
-import { Bot, Eye, EyeOff, FileCheck2, MessageCircle, Moon, Sun } from "lucide-react";
+import { Eye, EyeOff, Moon, Sun } from "lucide-react";
 import { post, tokenStorageKey } from "../api.js";
 import { LIMITS } from "../limits.js";
+import { MaskedText } from "../motion/Motion.jsx";
 import { duration, ease } from "../motion/presets.js";
 import { LimitedInput } from "./fields.jsx";
-import { Button, IconButton } from "./ui.jsx";
+import Logo, { LogoMark } from "./brand/Logo.jsx";
+import AnimatedLink from "./motion/AnimatedLink.jsx";
+import { Button, IconButton, InkPanel } from "./ui.jsx";
 
-const brandCards = [
-  {
-    id: "brief",
-    Icon: MessageCircle,
-    eyebrow: "Paso 1",
-    title: "Brief de WhatsApp",
-    description: "El cliente escribe lo que necesita, sin formatos ni plantillas.",
-  },
-  {
-    id: "agent",
-    Icon: Bot,
-    eyebrow: "Paso 2",
-    title: "Agente procesando",
-    description: "CotizaIA analiza el brief y arma la propuesta en minutos.",
-  },
-  {
-    id: "proposal",
-    Icon: FileCheck2,
-    eyebrow: "Paso 3",
-    title: "Propuesta lista · $12.400.000",
-    description: "Precios claros para enviar al cliente esta noche.",
-  },
+const storySteps = [
+  { id: "brief", eyebrow: "Paso 1", text: "Llega el brief por WhatsApp" },
+  { id: "estimate", eyebrow: "Paso 2", text: "El agente estima horas y precio" },
+  { id: "quote", eyebrow: "Paso 3", text: "Propuesta lista:", chip: "$12.400.000" },
 ];
 
-function BrandLoop() {
+function StoryCard({ step }) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.article
+      initial={reduce ? false : { opacity: 0, y: 12 }}
+      animate={reduce ? {} : { opacity: 1, y: 0 }}
+      exit={reduce ? {} : { opacity: 0, y: -8 }}
+      transition={reduce ? undefined : { duration: duration.state, ease: ease.out }}
+      className="rounded-xl bg-surface p-5 text-fg"
+    >
+      <span className="block text-[11px] font-medium text-faint">{step.eyebrow}</span>
+      <p className="mt-2 flex flex-wrap items-center gap-2 text-[15px] font-semibold leading-6">
+        {step.text}
+        {step.chip && (
+          <span className="inline-flex rounded-full bg-accent px-2.5 py-1 text-xs font-bold text-accent-fg tabular">
+            {step.chip}
+          </span>
+        )}
+      </p>
+    </motion.article>
+  );
+}
+
+function BrandStory() {
   const reduce = useReducedMotion();
   const [active, setActive] = useState(0);
 
   useEffect(() => {
     if (reduce) return undefined;
-    const timer = setInterval(() => setActive((index) => (index + 1) % brandCards.length), 2200);
+    const timer = setInterval(() => setActive((index) => (index + 1) % storySteps.length), 2600);
     return () => clearInterval(timer);
   }, [reduce]);
 
   if (reduce) {
     return (
       <div className="flex flex-col gap-3">
-        {brandCards.map((card) => (
-          <article key={card.id} className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-brand">
-              <card.Icon size={16} aria-hidden />
-            </span>
-            <span>
-              <span className="block text-[11px] font-medium text-faint">{card.eyebrow}</span>
-              <span className="block text-sm font-semibold text-fg">{card.title}</span>
-              <span className="mt-0.5 block text-xs text-muted">{card.description}</span>
-            </span>
-          </article>
+        {storySteps.map((step) => (
+          <StoryCard key={step.id} step={step} />
         ))}
       </div>
     );
   }
 
-  const card = brandCards[active];
   return (
     <div>
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.article
-          key={card.id}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: duration.state, ease: ease.out }}
-          className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4"
-        >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-brand">
-            <card.Icon size={16} aria-hidden />
-          </span>
-          <span>
-            <span className="block text-[11px] font-medium text-faint">{card.eyebrow}</span>
-            <span className="block text-sm font-semibold text-fg">{card.title}</span>
-            <span className="mt-0.5 block text-xs text-muted">{card.description}</span>
-          </span>
-        </motion.article>
-      </AnimatePresence>
-      <div className="mt-4 flex items-center gap-1.5" aria-hidden>
-        {brandCards.map((item, index) => (
+      <div className="min-h-[112px]">
+        <AnimatePresence mode="wait" initial={false}>
+          <StoryCard key={storySteps[active].id} step={storySteps[active]} />
+        </AnimatePresence>
+      </div>
+      <div className="mt-4 flex items-center gap-1.5" aria-hidden="true">
+        {storySteps.map((step, index) => (
           <span
-            key={item.id}
-            className={`h-1.5 rounded-full transition-colors duration-200 ${index === active ? "w-5 bg-accent" : "w-1.5 bg-line-strong"}`}
+            key={step.id}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              index === active ? "w-6 bg-accent" : "w-1.5 bg-ink-text/30"
+            }`}
           />
         ))}
       </div>
+    </div>
+  );
+}
+
+// Soft lime halo plus the floating robot mark: the brand stage's centerpiece.
+function FloatingMark() {
+  const reduce = useReducedMotion();
+  return (
+    <div className="relative grid place-items-center py-4">
+      <span
+        aria-hidden="true"
+        className="absolute h-72 w-72 rounded-full"
+        style={{
+          background: "radial-gradient(circle, color-mix(in srgb, var(--ink-fg) 25%, transparent) 0%, transparent 72%)",
+        }}
+      />
+      <motion.div
+        initial={false}
+        animate={reduce ? undefined : { y: [-10, 10, -10], rotate: [-3, 3, -3] }}
+        transition={reduce ? undefined : { duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        className="relative"
+      >
+        <LogoMark size={160} title="CotizaIA" />
+      </motion.div>
     </div>
   );
 }
@@ -135,28 +144,37 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
   ];
 
   return (
-    <main className="relative grid min-h-dvh bg-bg text-fg lg:grid-cols-2">
-      <div className="absolute right-4 top-4">
+    <main className="relative grid min-h-dvh bg-bg text-fg lg:grid-cols-12">
+      <div className="absolute right-4 top-4 z-10">
         <IconButton
           icon={theme === "dark" ? Sun : Moon}
           label={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
           onClick={onToggleTheme}
+          className="lg:text-ink-text/70 lg:hover:bg-ink-2 lg:hover:text-ink-fg"
         />
       </div>
 
-      <div className="flex items-center justify-center px-5 py-14">
-        <div className="w-full max-w-sm">
+      <div className="flex items-center justify-center px-5 py-14 sm:px-8 lg:col-span-5">
+        <div className="w-full max-w-sm lg:max-w-md">
           <Logo size={52} />
-          <h1 className="mt-8 text-2xl font-semibold tracking-tight">
-            {mode === "register" ? "Crea tu cuenta" : "Qué bueno verte"}
-          </h1>
-          <p className="mt-2 text-[13px] text-muted">
+
+          <MaskedText
+            key={mode}
+            as="h1"
+            text={mode === "register" ? "Crea tu agencia" : "Qué bueno verte"}
+            className="display mt-8 block text-5xl text-fg"
+          />
+          <p className="mt-4 text-base text-muted">
             {mode === "register"
               ? "Configura tu centro de operaciones en minutos."
               : "Ingresa para continuar con tus propuestas."}
           </p>
 
-          <div role="tablist" aria-label="Modo de acceso" className="mt-6 grid grid-cols-2 gap-1 rounded-lg border border-line bg-surface-2 p-1">
+          <div
+            role="tablist"
+            aria-label="Modo de acceso"
+            className="mt-7 grid h-12 grid-cols-2 gap-1 rounded-full border border-line bg-surface-2 p-1"
+          >
             {modes.map((item) => {
               const selected = mode === item.id;
               return (
@@ -166,14 +184,17 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
                   aria-selected={selected}
                   type="button"
                   onClick={() => switchMode(item.id)}
-                  className={`relative rounded-md px-3 py-2 text-[13px] font-medium transition-colors duration-200 ${selected ? "text-fg" : "text-muted hover:text-fg"}`}
+                  className={`relative flex h-10 items-center justify-center rounded-full text-sm font-medium transition-colors duration-200 ${
+                    selected ? "text-accent-fg" : "text-muted hover:text-fg"
+                  }`}
                 >
                   {selected && (
                     <motion.span
                       layoutId="auth-mode-pill"
+                      initial={false}
                       transition={{ duration: duration.state, ease: ease.fluid }}
-                      className="absolute inset-0 rounded-md bg-surface shadow-card"
-                      aria-hidden
+                      className="absolute inset-0 rounded-full bg-accent"
+                      aria-hidden="true"
                     />
                   )}
                   <span className="relative">{item.label}</span>
@@ -182,7 +203,7 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
             })}
           </div>
 
-          <form onSubmit={submit} className="mt-6 space-y-4">
+          <form onSubmit={submit} className="mt-7 flex flex-col gap-5">
             {mode === "register" && (
               <>
                 <LimitedInput
@@ -229,7 +250,7 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
                 fieldClassName="pr-11"
                 required
               />
-              <span className="absolute right-1 top-6">
+              <span className="absolute right-1 top-8">
                 <IconButton
                   icon={showPassword ? EyeOff : Eye}
                   label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
@@ -242,22 +263,36 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
                 {error}
               </p>
             )}
-            <Button type="submit" variant="primary" loading={busy} className="w-full">
+            <Button type="submit" variant="primary" size="lg" loading={busy} className="w-full">
               {busy ? "Un momento…" : mode === "register" ? "Crear cuenta" : "Ingresar"}
             </Button>
           </form>
+
+          <div className="mt-6 flex justify-center">
+            <AnimatedLink
+              onClick={() => switchMode(mode === "login" ? "register" : "login")}
+              className="text-sm"
+            >
+              {mode === "login" ? "¿Aún no tienes cuenta? Crear cuenta" : "¿Ya tienes cuenta? Iniciar sesión"}
+            </AnimatedLink>
+          </div>
         </div>
       </div>
 
-      <aside className="hidden flex-col justify-between gap-10 bg-surface-2 px-10 py-12 lg:flex" aria-hidden={false}>
-        <div>
-          <p className="text-xs font-medium text-muted">Briefs, análisis y propuestas en un solo lugar.</p>
-          <h2 className="mt-3 max-w-md text-3xl font-semibold leading-tight tracking-tight">
-            Menos tiempo cotizando, más foco en tu negocio.
-          </h2>
-        </div>
-        <BrandLoop />
-        <p className="text-xs text-faint">Tus datos viajan cifrados.</p>
+      <aside className="hidden lg:col-span-7 lg:flex" aria-hidden={false}>
+        <InkPanel className="m-4 flex w-full flex-col justify-between gap-8 p-8 lg:p-10">
+          <MaskedText
+            as="h2"
+            text="Cotiza en minutos, no en días."
+            className="display block text-[clamp(3rem,5vw,4.75rem)] text-ink-fg"
+          />
+
+          <FloatingMark />
+
+          <BrandStory />
+
+          <p className="text-xs text-ink-text/70">Tus datos viajan cifrados.</p>
+        </InkPanel>
       </aside>
     </main>
   );

@@ -1,15 +1,19 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { formatCurrency, formatRelative, StatusBadge } from "../../components/ui.jsx";
+import { duration, ease } from "../../motion/presets.js";
 
 export function ProposalCard({ proposal, onClick, layoutId, selected = false }) {
+  const reduce = useReducedMotion();
   return (
     <motion.article
       layoutId={layoutId}
       onClick={onClick}
-      className={`group cursor-pointer rounded-lg border bg-surface p-3 transition-colors duration-200 hover:border-line-strong ${selected ? "border-brand/60 ring-1 ring-brand/30" : "border-line"}`}
+      className={`group block w-full cursor-pointer rounded-xl bg-surface p-5 text-left shadow-card transition-shadow duration-300 hover:shadow-lift ${
+        selected ? "ring-2 ring-brand" : ""
+      }`}
       layout
-      transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
-      whileHover={{ y: -2, transition: { duration: 0.12 } }}
+      transition={{ duration: duration.panel, ease: ease.fluid }}
+      whileHover={reduce ? undefined : { y: -3 }}
       aria-pressed={selected}
       tabIndex={0}
       role="button"
@@ -17,14 +21,13 @@ export function ProposalCard({ proposal, onClick, layoutId, selected = false }) 
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-fg">#{proposal.id}</p>
-          <p className="mt-0.5 text-xs text-muted">Creada {formatRelative(proposal.createdAt)}</p>
+          <p className="tabular text-sm font-semibold text-fg">#{proposal.id}</p>
+          <p className="mt-1 text-sm text-muted">Propuesta</p>
         </div>
-        <span className="shrink-0 font-mono text-sm text-fg">{formatCurrency(proposal.total)}</span>
-      </div>
-      <div className="mt-3 flex items-center justify-between">
         <StatusBadge status={proposal.status} />
       </div>
+      <p className="display tabular mt-5 text-3xl text-fg">{formatCurrency(proposal.total)}</p>
+      <p className="mt-4 text-sm text-faint">Creada {formatRelative(proposal.createdAt)}</p>
     </motion.article>
   );
 }

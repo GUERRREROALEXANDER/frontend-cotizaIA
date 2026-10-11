@@ -1,10 +1,12 @@
 import { useMemo } from "react";
+import { useReducedMotion } from "framer-motion";
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Panel } from "../ui.jsx";
+import { duration } from "../../motion/presets.js";
 import { buildStatusSeries, buildValueSeries, formatCompactCop } from "./dashboardData.js";
 import { formatCurrency } from "../ui.jsx";
 
-const axisTick = { fill: "var(--text-muted)", fontSize: 11 };
+const axisTick = { fill: "var(--text-muted)", fontSize: 12 };
 const gridStroke = "var(--border)";
 const tooltipContent = {
   backgroundColor: "var(--surface)",
@@ -19,18 +21,19 @@ const tooltipContent = {
 function ChartNote({ children }) {
   return (
     <div className="grid h-[240px] place-items-center px-6 text-center">
-      <p className="max-w-[32ch] text-xs text-muted">{children}</p>
+      <p className="max-w-[32ch] text-sm text-muted">{children}</p>
     </div>
   );
 }
 
 export function ProposalsStatusChart({ proposalsByStatus, className = "" }) {
   const data = useMemo(() => buildStatusSeries(proposalsByStatus), [proposalsByStatus]);
+  const reduce = useReducedMotion();
 
   return (
-    <Panel className={`flex flex-col p-5 ${className}`}>
-      <h2 className="text-sm font-semibold text-fg">Propuestas por estado</h2>
-      <p className="mt-1 text-xs text-muted">Cómo se reparte tu pipeline hoy</p>
+    <Panel className={`flex flex-col p-6 ${className}`}>
+      <h2 className="text-lg font-bold tracking-tight text-fg">Propuestas por estado</h2>
+      <p className="mt-1 text-sm text-muted">Cómo se reparte tu pipeline hoy</p>
       {data.length === 0 ? (
         <ChartNote>Todavía no hay propuestas que clasificar.</ChartNote>
       ) : (
@@ -56,8 +59,8 @@ export function ProposalsStatusChart({ proposalsByStatus, className = "" }) {
                 cursor={{ fill: "var(--surface-2)" }}
                 formatter={(value) => [value, "Propuestas"]}
               />
-              <Bar dataKey="count" fill="var(--chart-1)" barSize={16} radius={[0, 4, 4, 0]} isAnimationActive animationDuration={480} animationEasing="ease-out">
-                <LabelList dataKey="count" position="right" offset={8} fill="var(--text-muted)" fontSize={11} fontFamily="var(--font-mono)" />
+              <Bar dataKey="count" fill="var(--chart-1)" barSize={16} radius={[0, 4, 4, 0]} isAnimationActive={!reduce} animationDuration={duration.reveal * 1000} animationEasing="ease-out">
+                <LabelList dataKey="count" position="right" offset={8} fill="var(--text-muted)" fontSize={12} fontFamily="var(--font-mono)" />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -72,13 +75,14 @@ export function QuotedValueChart({ proposals, className = "" }) {
   const total = data.reduce((sum, day) => sum + day.value, 0);
   const hasData = total > 0;
   const peak = Math.max(0, ...data.map((day) => day.value));
+  const reduce = useReducedMotion();
 
   return (
-    <Panel className={`flex flex-col p-5 ${className}`}>
+    <Panel className={`flex flex-col p-6 ${className}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-fg">Valor cotizado por día</h2>
-          <p className="mt-1 text-xs text-muted">Últimos 14 días, según la fecha de creación de cada propuesta</p>
+          <h2 className="text-lg font-bold tracking-tight text-fg">Valor cotizado por día</h2>
+          <p className="mt-1 text-sm text-muted">Últimos 14 días, según la fecha de creación de cada propuesta</p>
         </div>
         <span className="font-mono text-sm text-fg">{formatCurrency(total)}</span>
       </div>
@@ -105,13 +109,13 @@ export function QuotedValueChart({ proposals, className = "" }) {
                 cursor={{ fill: "var(--surface-2)" }}
                 formatter={(value) => [formatCurrency(value), "Valor cotizado"]}
               />
-              <Bar dataKey="value" fill="var(--chart-1)" maxBarSize={24} radius={[4, 4, 0, 0]} isAnimationActive animationDuration={480} animationEasing="ease-out">
+              <Bar dataKey="value" fill="var(--chart-1)" maxBarSize={24} radius={[4, 4, 0, 0]} isAnimationActive={!reduce} animationDuration={duration.reveal * 1000} animationEasing="ease-out">
                 <LabelList
                   dataKey="value"
                   position="top"
                   offset={6}
                   fill="var(--text-muted)"
-                  fontSize={11}
+                  fontSize={12}
                   fontFamily="var(--font-mono)"
                   formatter={(value) => (value === peak && value > 0 ? formatCompactCop(value) : "")}
                 />
