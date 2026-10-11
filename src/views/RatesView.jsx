@@ -245,16 +245,12 @@ export default function RatesView() {
               {roles.map((role) => {
                 const active = role.id === selectedId;
                 return (
-                  <div
-                    key={role.id}
-                    className={active ? "flex items-center gap-1 h-12 rounded-full px-4 transition-colors duration-200 bg-accent text-accent-fg" : "flex items-center gap-1 h-12 rounded-full px-4 transition-colors duration-200 hover:bg-surface-2"}
-                  >
-                    <span
-                      className={active ? "grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent text-accent-fg" : "border border-line bg-surface text-muted"}
-                    >
-                      <UserRound size={15} aria-hidden />
-                    </span>
-                    <span className="truncate text-[13px] font-medium text-fg">{role.name}</span>
+                  <div key={role.id} className="flex items-center gap-2">
+                    <button type="button" onClick={() => setSelectedId(role.id)} aria-pressed={active} className={`flex h-12 flex-1 items-center gap-3 rounded-full px-3 text-left transition-colors duration-200 focus-visible:outline-2 ${active ? "bg-accent text-accent-fg" : "text-fg hover:bg-surface-2"}`}>
+                      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${active ? "bg-ink text-ink-fg" : "bg-surface-2 text-muted"}`}><UserRound size={16} aria-hidden /></span>
+                      <span className="truncate text-[15px] font-semibold">{role.name}</span>
+                    </button>
+                    <HoldToConfirm compact label={`Eliminar rol ${role.name}`} onConfirm={() => deleteRole(role.id)} />
                   </div>
                 );
               })}
