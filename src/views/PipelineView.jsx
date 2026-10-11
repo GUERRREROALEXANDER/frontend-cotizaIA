@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { Search } from "lucide-react";
 import { get } from "../api.js";
-import AgentCity from "../components/AgentCity.jsx";
+import { AgentSceneLazy } from "../components/agent3d/index.js";
 import { LimitedInput } from "../components/fields.jsx";
 import { StageStepper } from "../components/pipeline/StageStepper.jsx";
 import { agentStages, executionDurationMs, formatDuration, isFlagged, stepsByHandler } from "../components/pipeline/stages.js";
-import { Button, InkPanel, Panel, StatusBadge, formatDateTime } from "../components/ui.jsx";
+import { Badge, Button, InkPanel, Panel, StatusBadge, formatDateTime } from "../components/ui.jsx";
 import { MaskedText } from "../motion/Motion.jsx";
 
 const LAST_STAGE = agentStages.length - 1;
@@ -157,12 +157,19 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
         </Panel>
 
         <div className="xl:col-span-7">
-          <AgentCity
-            briefCount={execution?.briefId != null ? 1 : 0}
-            activeAgents={isLive ? 1 : 0}
-            reviewCount={reviewCount}
-            onNavigate={onNavigate}
-          />
+          {/* 3D agent stage (code-split: three.js only loads on this screen). */}
+          <Panel className="relative overflow-hidden p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight text-fg">Tu agente en acción</h2>
+                <p className="mt-1 text-sm text-muted">Cada tarjeta es un brief; cuando termina, sale la propuesta.</p>
+              </div>
+              {reviewCount > 0 && <Badge tone="review">{reviewCount} por revisar</Badge>}
+            </div>
+            <div className="mt-4 h-[440px] w-full">
+              <AgentSceneLazy steps={executionSteps} isProcessing={isLive} />
+            </div>
+          </Panel>
         </div>
       </div>
     </div>
