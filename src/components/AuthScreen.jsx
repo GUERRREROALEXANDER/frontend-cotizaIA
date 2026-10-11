@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import Logo from "./brand/Logo.jsx";
 import { Bot, Eye, EyeOff, FileCheck2, MessageCircle, Moon, Sun } from "lucide-react";
 import { post, tokenStorageKey } from "../api.js";
 import { LIMITS } from "../limits.js";
@@ -145,12 +146,7 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
 
       <div className="flex items-center justify-center px-5 py-14">
         <div className="w-full max-w-sm">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-accent-fg">
-              <Bot size={20} aria-hidden />
-            </span>
-            <span className="text-base font-semibold tracking-tight">CotizaIA</span>
-          </div>
+          <Logo size={52} />
           <h1 className="mt-8 text-2xl font-semibold tracking-tight">
             {mode === "register" ? "Crea tu cuenta" : "Qué bueno verte"}
           </h1>
@@ -261,7 +257,7 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
           </h2>
         </div>
         <BrandLoop />
-        <p className="text-xs text-faint">Conexión segura al backend de CotizaIA.</p>
+        <p className="text-xs text-faint">Tus datos viajan cifrados.</p>
       </aside>
     </main>
   );

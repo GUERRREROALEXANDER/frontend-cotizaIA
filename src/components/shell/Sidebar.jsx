@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { PanelLeftClose, PanelLeftOpen, Sparkles, X } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
+import Logo from "../brand/Logo.jsx";
 import { viewGroups, views } from "../../navigation.js";
 import { duration, ease } from "../../motion/presets.js";
 
@@ -50,13 +51,8 @@ function NavList({ activeView, onNavigate, collapsed, counts, layoutGroup }) {
 
 function Brand({ collapsed }) {
   return (
-    <div className={`flex h-20 items-center gap-3 px-5 ${collapsed ? "justify-center px-0" : ""}`}>
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ink text-ink-fg">
-        <Sparkles size={18} aria-hidden />
-      </span>
-      {!collapsed && (
-        <p className="display text-[1.6rem] text-fg">CotizaIA</p>
-      )}
+    <div className={`flex h-20 items-center px-5 ${collapsed ? "justify-center px-0" : ""}`}>
+      <Logo size={collapsed ? 40 : 44} showWordmark={!collapsed} />
     </div>
   );
 }
