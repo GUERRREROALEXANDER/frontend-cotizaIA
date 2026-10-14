@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { Search } from "lucide-react";
 import { get } from "../api.js";
+import { ShaderBackground } from "../components/motion/ShaderBackground.jsx";
 import { AgentSceneLazy } from "../components/agent3d/index.js";
 import { LimitedInput } from "../components/fields.jsx";
 import { StageStepper } from "../components/pipeline/StageStepper.jsx";
@@ -79,7 +80,8 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
   return (
     <div>
       <InkPanel className="p-8">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <ShaderBackground />
+        <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
             <MaskedText as="h1" text="El agente, paso a paso" className="display block text-[clamp(2.25rem,4vw,3.5rem)] text-ink-fg" />
             <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -121,7 +123,7 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
             />
           </dl>
         </div>
-        <form onSubmit={loadTimeline} className="mt-6 flex flex-wrap items-end gap-2">
+        <form onSubmit={loadTimeline} className="relative z-10 mt-6 flex flex-wrap items-end gap-2">
           <LimitedInput
             label={<span className="text-ink-text">ID del brief</span>}
             limit={12}

@@ -25,21 +25,37 @@ const STEP_DESCRIPTIONS = {
   Compose: "Deja todo listo para tu revisión",
 };
 
-function DrawnCheck({ reduce, color }) {
+// Glossy orb for a finished stage. One brand-green hue for every stage; the
+// shade deepens from lime to forest along the chain. The rim darkens toward
+// the brand ink (never black, which turns the green muddy).
+const orbShade = (index, total) =>
+  "color-mix(in oklab, var(--accent) " + Math.round(75 - (75 * index) / Math.max(total - 1, 1)) + "%, var(--chart-1))";
+
+function GlossyOrb({ color }) {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true" style={{ color }}>
-      <motion.path
-        d="M5.5 12.5l4.2 4.2L18.5 7.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{ duration: reduce ? 0 : duration.reveal, ease: ease.out }}
+    <span
+      aria-hidden="true"
+      className="absolute inset-[-2px] grid place-items-center overflow-hidden rounded-full"
+      style={{
+        background:
+          "radial-gradient(120% 120% at 50% 15%, color-mix(in oklab, " + color + " 60%, white) 0%, " + color +
+          " 50%, color-mix(in oklab, " + color + " 75%, var(--brand)) 100%)",
+        boxShadow:
+          "inset 0 -4px 8px color-mix(in oklab, " + color + " 40%, var(--brand)), 0 4px 10px -2px color-mix(in oklab, " +
+          color + " 55%, transparent)",
+      }}
+    >
+      <span
+        className="absolute left-[18%] right-[18%] top-[6%] h-[38%] rounded-full"
+        style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0))" }}
       />
-    </svg>
+      <Check
+        size={22}
+        strokeWidth={3}
+        className="relative text-white"
+        style={{ filter: "drop-shadow(0 1px 1px color-mix(in oklab, var(--brand) 55%, transparent))" }}
+      />
+    </span>
   );
 }
 
@@ -195,13 +211,13 @@ function StepCard({ stage, index, status, expanded, onToggle, reduce, nodeRefs, 
           <span
             className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full border-2"
             style={{
-              background: done ? stepColor : "transparent",
-              borderColor: done ? stepColor : failed ? "var(--status-closed-fg)" : running ? stepColor : skipped ? "var(--border)" : "var(--border)",
+              background: done ? orbShade(index, totalSteps) : "transparent",
+              borderColor: done ? orbShade(index, totalSteps) : failed ? "var(--status-closed-fg)" : running ? stepColor : skipped ? "var(--border)" : "var(--border)",
               color: done ? "white" : running ? stepColor : failed ? "var(--status-closed-fg)" : skipped ? "var(--text-faint)" : "var(--text-faint)",
             }}
             aria-hidden="true"
           >
-            {done && <DrawnCheck reduce={reduce} color="white" />}
+            {done && <GlossyOrb color={orbShade(index, totalSteps)} />}
             {failed && <X size={16} aria-hidden="true" />}
             {running && <RunningRing reduce={reduce} color={stepColor} />}
             {skipped && <SkipForward size={16} aria-hidden="true" />}
@@ -247,7 +263,7 @@ function StepCard({ stage, index, status, expanded, onToggle, reduce, nodeRefs, 
         </div>
       </button>
 
-      <ShimmerSweep reduce={reduce} />
+      {running && <ShimmerSweep reduce={reduce} />}
 
       <AnimatePresence initial={false}>
         {isExpanded && (
