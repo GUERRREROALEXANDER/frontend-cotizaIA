@@ -9,6 +9,7 @@ import { LimitedInput } from "./fields.jsx";
 import Logo, { LogoMark } from "./brand/Logo.jsx";
 import AnimatedLink from "./motion/AnimatedLink.jsx";
 import { Button, IconButton, InkPanel } from "./ui.jsx";
+import { ShaderBackground } from "./motion/ShaderBackground.jsx";
 
 const storySteps = [
   { id: "brief", eyebrow: "Paso 1", text: "Llega el brief por WhatsApp" },
@@ -280,18 +281,21 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
       </div>
 
       <aside className="hidden lg:col-span-7 lg:flex" aria-hidden={false}>
-        <InkPanel className="m-4 flex w-full flex-col justify-between gap-8 p-8 lg:p-10">
-          <MaskedText
-            as="h2"
-            text="Cotiza en minutos, no en días."
-            className="display block text-[clamp(3rem,5vw,4.75rem)] text-ink-fg"
-          />
+        <InkPanel className="m-4 flex w-full flex-col p-8 lg:p-10">
+          <ShaderBackground />
+          <div className="relative z-10 flex flex-1 flex-col justify-between gap-8">
+            <MaskedText
+              as="h2"
+              text="Cotiza en minutos, no en días."
+              className="display block text-[clamp(3rem,5vw,4.75rem)] text-ink-fg"
+            />
 
-          <FloatingMark />
+            <FloatingMark />
 
-          <BrandStory />
+            <BrandStory />
 
-          <p className="text-xs text-ink-text/70">Tus datos viajan cifrados.</p>
+            <p className="text-xs text-ink-text/70">Tus datos viajan cifrados.</p>
+          </div>
         </InkPanel>
       </aside>
     </main>

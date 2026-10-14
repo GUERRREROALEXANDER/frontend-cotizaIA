@@ -1,11 +1,12 @@
 import { useMemo } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { Clock3, FileText, Inbox, ListChecks, Percent, Sparkles } from "lucide-react";
 import { Line, LineChart, ResponsiveContainer } from "recharts";
 import { Button, EmptyState, InkPanel, KpiTile, Panel } from "../components/ui.jsx";
 import { CountUp, FadeUp, MaskedText, StaggerItem } from "../motion/Motion.jsx";
 import { duration } from "../motion/presets.js";
 import AnimatedLink from "../components/motion/AnimatedLink.jsx";
+import { ShaderBackground } from "../components/motion/ShaderBackground.jsx";
 import { AgentRunPanel } from "../components/dashboard/AgentRunPanel.jsx";
 import { AttentionList } from "../components/dashboard/AttentionList.jsx";
 import { OnboardingChecklist } from "../components/dashboard/OnboardingChecklist.jsx";
@@ -13,34 +14,6 @@ import { ProposalsStatusChart, QuotedValueChart } from "../components/dashboard/
 import { RecentBriefs } from "../components/dashboard/RecentBriefs.jsx";
 import { DashboardSkeleton } from "../components/dashboard/DashboardSkeleton.jsx";
 import { acceptancePercent, buildCountSeries, formatCompactCop, formatMinutes, greetingForHour } from "../components/dashboard/dashboardData.js";
-
-// Organic lime glow behind the hero content: a radial SVG blob on a slow
-// rotate and drift loop (transform only). Static when reduced motion is on.
-function HeroBlob() {
-  const reduce = useReducedMotion();
-  return (
-    <motion.div
-      aria-hidden="true"
-      className="pointer-events-none absolute -right-28 -top-36 h-[440px] w-[440px]"
-      initial={false}
-      animate={reduce ? undefined : { rotate: [0, 360], x: [0, 40, -24, 0], y: [0, -28, 24, 0] }}
-      transition={reduce ? undefined : { duration: 16, repeat: Infinity, ease: "linear" }}
-    >
-      <svg viewBox="0 0 400 400" className="h-full w-full">
-        <defs>
-          <radialGradient id="dash-hero-blob" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" style={{ stopColor: "var(--ink-fg)", stopOpacity: 0.5 }} />
-            <stop offset="100%" style={{ stopColor: "var(--ink-fg)", stopOpacity: 0 }} />
-          </radialGradient>
-        </defs>
-        <path
-          d="M214 28c82 8 148 84 144 172-4 88-84 158-172 152S34 268 38 180 132 20 214 28Z"
-          fill="url(#dash-hero-blob)"
-        />
-      </svg>
-    </motion.div>
-  );
-}
 
 export default function DashboardView({
   analytics,
@@ -82,8 +55,8 @@ export default function DashboardView({
   return (
     <div className="space-y-8">
       <InkPanel className="p-8 lg:p-10">
-        <HeroBlob />
-        <div className="relative grid items-center gap-8 lg:grid-cols-[1fr_auto]">
+        <ShaderBackground />
+        <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[1fr_auto]">
           <div className="min-w-0">
             <MaskedText
               as="h1"
