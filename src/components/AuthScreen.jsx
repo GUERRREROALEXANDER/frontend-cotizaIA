@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Eye, EyeOff, Moon, Sun } from "lucide-react";
-import { post, tokenStorageKey } from "../api.js";
+import { post } from "../api.js";
 import { LIMITS } from "../limits.js";
 import { MaskedText } from "../motion/Motion.jsx";
 import { duration, ease } from "../motion/presets.js";
@@ -124,9 +124,8 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
         mode === "register"
           ? form
           : { email: form.email, password: form.password };
-      const result = await post(`/api/auth/${mode === "register" ? "register" : "login"}`, payload);
-      window.localStorage.setItem(tokenStorageKey, result.token);
-      onAuthenticated(result.token);
+      await post(`/api/auth/${mode === "register" ? "register" : "login"}`, payload);
+      onAuthenticated();
     } catch (requestError) {
       setError(requestError.message);
     } finally {

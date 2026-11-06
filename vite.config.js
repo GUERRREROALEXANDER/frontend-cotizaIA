@@ -17,6 +17,9 @@ const backendProxy = {
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    sourcemap: false,
+  },
   server: {
     proxy: {
       "/api": backendProxy,

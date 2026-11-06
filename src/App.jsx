@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { Toaster } from "sonner";
-import { get, tokenStorageKey } from "./api.js";
+import { get, getSession, logout } from "./api.js";
 import AuthScreen from "./components/AuthScreen.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
 import NotificationsDrawer from "./components/NotificationsDrawer.jsx";
@@ -24,33 +24,9 @@ import PricingView from "./views/PricingView.jsx";
 import ProposalsView from "./views/ProposalsView.jsx";
 import RatesView from "./views/RatesView.jsx";
 
-const briefStorageKey = "cotizaia.briefs";
-const executionStorageKey = "cotizaia.recentExecution";
-
-
-function readStoredBriefs() {
-  try {
-    const stored = JSON.parse(window.localStorage.getItem(briefStorageKey) || "[]");
-    return Array.isArray(stored) ? stored : [];
-  } catch {
-    return [];
-  }
-}
-
-function readStoredExecution() {
-  try {
-    return JSON.parse(window.localStorage.getItem(executionStorageKey) || "null");
-  } catch {
-    return null;
-  }
-}
-
-function getAuthToken() {
-  return window.localStorage.getItem(tokenStorageKey);
-}
-
 export default function App() {
-  const [token, setToken] = useState(getAuthToken);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [activeView, setActiveView] = useHashView();
   const { theme, toggleTheme } = useTheme();
   const reduceMotion = useReducedMotion();
@@ -64,28 +40,55 @@ export default function App() {
   const [queue, setQueue] = useState([]);
   const [clients, setClients] = useState([]);
   const [pricingModel, setPricingModel] = useState("FIXED");
-  const [briefs, setBriefs] = useState(readStoredBriefs);
+  const [briefs, setBriefs] = useState([]);
   const [selectedBrief, setSelectedBrief] = useState(null);
   const [activeExecution, setActiveExecution] = useState(null);
-  const [recentExecution, setRecentExecution] = useState(readStoredExecution);
+  const [recentExecution, setRecentExecution] = useState(null);
   const [user, setUser] = useState(null);
-  const [loadingWorkspace, setLoadingWorkspace] = useState(Boolean(token));
+  const [loadingWorkspace, setLoadingWorkspace] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [workspaceError, setWorkspaceError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const resetSession = useCallback(() => {
+    setAuthenticated(false);
+    setUser(null);
+    setAnalytics(null);
+    setProposals([]);
+    setQueue([]);
+    setClients([]);
+    setBriefs([]);
+    setSelectedBrief(null);
+    setActiveExecution(null);
+    setRecentExecution(null);
+    setPricingModel("FIXED");
+    setWorkspaceError("");
+    setLoadingWorkspace(false);
+    setRefreshing(false);
+  }, []);
+
   const loadWorkspace = useCallback(async (showLoading = false) => {
-    if (!getAuthToken()) return;
     if (showLoading) setRefreshing(true);
     setWorkspaceError("");
     try {
-      const [identity, nextAnalytics, nextProposals, nextQueue, nextClients, pricing] = await Promise.all([
+      const [
+        identity,
+        nextAnalytics,
+        nextProposals,
+        nextQueue,
+        nextClients,
+        pricing,
+        nextBriefs,
+        nextExecutions,
+      ] = await Promise.all([
         get("/api/auth/me"),
         get("/api/analytics"),
         get("/api/proposals"),
         get("/api/proposals/queue"),
         get("/api/clients"),
         get("/api/agency/pricing-model"),
+        get("/api/briefs?limit=35").catch(() => []),
+        get("/api/executions?limit=1").catch(() => []),
       ]);
       setUser(identity);
       setAnalytics(nextAnalytics);
@@ -93,11 +96,12 @@ export default function App() {
       setQueue(nextQueue);
       setClients(nextClients);
       setPricingModel(pricing.pricingModel);
+      setBriefs(Array.isArray(nextBriefs) ? nextBriefs : []);
+      const latestExecution = Array.isArray(nextExecutions) ? nextExecutions[0] || null : nextExecutions || null;
+      setRecentExecution(latestExecution);
     } catch (error) {
       if (error.status === 401) {
-        window.localStorage.removeItem(tokenStorageKey);
-        setToken(null);
-        setUser(null);
+        resetSession();
       } else {
         setWorkspaceError(error.message);
       }
@@ -105,11 +109,37 @@ export default function App() {
       setLoadingWorkspace(false);
       setRefreshing(false);
     }
+  }, [resetSession]);
+
+  // The session lives in HttpOnly cookies: ask the backend who we are.
+  useEffect(() => {
+    let active = true;
+    getSession()
+      .then((identity) => {
+        if (!active || !identity) return;
+        setUser(identity);
+        setLoadingWorkspace(true);
+        setAuthenticated(true);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setCheckingSession(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (token) void loadWorkspace();
-  }, [token, loadWorkspace]);
+    if (authenticated) void loadWorkspace();
+  }, [authenticated, loadWorkspace]);
+
+  // A refused refresh means the cookies are gone: back to the auth screen.
+  useEffect(() => {
+    const handleExpired = () => resetSession();
+    window.addEventListener("cotizaia:session-expired", handleExpired);
+    return () => window.removeEventListener("cotizaia:session-expired", handleExpired);
+  }, [resetSession]);
 
   // 1-8 jump between views; Ctrl/Cmd+K opens the command palette.
   useEffect(() => {
@@ -129,13 +159,14 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleShortcut);
   }, [setActiveView]);
 
+  const handleAuthenticated = useCallback(() => {
+    setLoadingWorkspace(true);
+    setAuthenticated(true);
+  }, []);
+
   const handleBriefCreated = useCallback((brief) => {
     if (!brief?.id) return;
-    setBriefs((current) => {
-      const updated = [brief, ...current.filter((item) => item.id !== brief.id)].slice(0, 35);
-      window.localStorage.setItem(briefStorageKey, JSON.stringify(updated));
-      return updated;
-    });
+    setBriefs((current) => [brief, ...current.filter((item) => item.id !== brief.id)].slice(0, 35));
   }, []);
 
   const handleClientCreated = useCallback((client) => {
@@ -146,7 +177,6 @@ export default function App() {
     if (!execution) return;
     setActiveExecution(execution);
     setRecentExecution(execution);
-    window.localStorage.setItem(executionStorageKey, JSON.stringify(execution));
   }, []);
 
   const handleQuotation = useCallback(() => {
@@ -163,34 +193,35 @@ export default function App() {
     setActiveView("inbox");
   }, [setActiveView]);
 
-  function signOut() {
-    window.localStorage.removeItem(tokenStorageKey);
-    setToken(null);
-    setUser(null);
-    setAnalytics(null);
-    setProposals([]);
-    setQueue([]);
-    setClients([]);
-  }
+  const signOut = useCallback(async () => {
+    try {
+      await logout();
+    } catch {
+      // The cookies may already be gone; still return to the auth screen.
+    }
+    resetSession();
+  }, [resetSession]);
 
-  const notifications = useNotifications({ enabled: Boolean(token) && !loadingWorkspace });
+  const notifications = useNotifications({ enabled: authenticated && !loadingWorkspace });
 
   const toaster = <Toaster theme={theme} position="bottom-right" closeButton toastOptions={{ className: "font-sans" }} />;
 
-  if (!token) return <>{<AuthScreen onAuthenticated={setToken} theme={theme} onToggleTheme={toggleTheme} />}{toaster}</>;
+  const loadingScreen = (
+    <main className="grid min-h-dvh place-items-center bg-bg text-center">
+      <div>
+        <span className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-accent text-accent-fg">
+          <Sparkles className="animate-pulse" size={20} aria-hidden />
+        </span>
+        <p className="mt-4 text-xs text-muted">Preparando tu centro de operaciones…</p>
+      </div>
+    </main>
+  );
 
-  if (loadingWorkspace) {
-    return (
-      <main className="grid min-h-dvh place-items-center bg-bg text-center">
-        <div>
-          <span className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-accent text-accent-fg">
-            <Sparkles className="animate-pulse" size={20} aria-hidden />
-          </span>
-          <p className="mt-4 text-xs text-muted">Preparando tu centro de operaciones…</p>
-        </div>
-      </main>
-    );
+  if (checkingSession || (authenticated && loadingWorkspace)) {
+    return <>{loadingScreen}{toaster}</>;
   }
+
+  if (!authenticated) return <>{<AuthScreen onAuthenticated={handleAuthenticated} theme={theme} onToggleTheme={toggleTheme} />}{toaster}</>;
 
   const currentView = viewById[activeView] || viewById.dashboard;
   const transition = reduceMotion ? reducedFade : viewTransition;

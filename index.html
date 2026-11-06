@@ -5,15 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#f4f6f1" />
-    <script>
-      // Apply the saved theme before first paint so there is no flash.
-      try {
-        var saved = localStorage.getItem("cotizaia.theme");
-        document.documentElement.dataset.theme = saved === "dark" ? "dark" : "light";
-      } catch (e) {
-        document.documentElement.dataset.theme = "light";
-      }
-    </script>
+    <script src="/theme-init.js"></script>
     <meta name="description" content="Centro de operaciones comercial autónomo de CotizaIA." />
     <title>CotizaIA · Centro de operaciones</title>
   </head>
