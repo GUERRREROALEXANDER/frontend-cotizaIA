@@ -1,13 +1,13 @@
 // The seven agent handlers, in the order the backend runs them, with the
 // Spanish labels the UI shows. API steps may carry an optional "Handler"
 // suffix, so matching always goes through normalizeHandler.
-import { Clock3, FileSearch2, FileText, HelpCircle, ListFilter, PenLine, WandSparkles } from "lucide-react";
+import { CircleDollarSign, Clock3, FileSearch2, FileText, HelpCircle, ListFilter, PenLine } from "lucide-react";
 
 export const agentStages = [
   { handler: "Classify", label: "Clasificación", description: "Tipo de proyecto", icon: ListFilter },
   { handler: "Extract", label: "Extracción", description: "Requisitos del brief", icon: FileSearch2 },
   { handler: "Estimate", label: "Estimación", description: "Horas por requisito", icon: Clock3 },
-  { handler: "Price", label: "Precio", description: "Tarifa y estrategia", icon: WandSparkles },
+  { handler: "Price", label: "Precio", description: "Tarifa y estrategia", icon: CircleDollarSign },
   { handler: "AmbiguityCheck", label: "Ambigüedades", description: "Preguntas para el humano", icon: HelpCircle },
   { handler: "Generate", label: "Documentos", description: "Propuesta, contrato y cronograma en PDF", icon: FileText },
   { handler: "Compose", label: "Composición", description: "Borrador final", icon: PenLine },

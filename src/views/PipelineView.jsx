@@ -3,11 +3,10 @@ import { useReducedMotion } from "framer-motion";
 import { Search } from "lucide-react";
 import { get } from "../api.js";
 import { ShaderBackground } from "../components/motion/ShaderBackground.jsx";
-import { AgentSceneLazy } from "../components/agent3d/index.js";
 import { LimitedInput } from "../components/fields.jsx";
-import { StageStepper } from "../components/pipeline/StageStepper.jsx";
-import { agentStages, executionDurationMs, formatDuration, isFlagged, stepsByHandler } from "../components/pipeline/stages.js";
-import { Badge, Button, InkPanel, Panel, StatusBadge, formatDateTime } from "../components/ui.jsx";
+import { AgentRail } from "../components/pipeline/AgentRail.jsx";
+import { agentStages, executionDurationMs, formatDuration, stepsByHandler } from "../components/pipeline/stages.js";
+import { Button, InkPanel, Panel, StatusBadge, formatDateTime } from "../components/ui.jsx";
 import { MaskedText } from "../motion/Motion.jsx";
 
 const LAST_STAGE = agentStages.length - 1;
@@ -74,8 +73,6 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
   );
 
   const totalMs = executionDurationMs(execution);
-  const reviewCount = mergedStages.filter((stage) => isFlagged(stage.result)).length;
-  const showStepper = executionSteps.length > 0 || isLive;
 
   return (
     <div>
@@ -141,39 +138,23 @@ export default function PipelineView({ activeExecution, recentExecution, onExecu
       </InkPanel>
 
       {loadError && (
-        <Panel role="alert" className="mb-4 border-danger/30 bg-danger/5 px-4 py-3">
+        <Panel role="alert" className="mt-4 border-danger/30 bg-danger/5 px-4 py-3">
           <p className="text-sm text-danger">{loadError}</p>
         </Panel>
       )}
 
-      <div className="grid gap-4 xl:grid-cols-12">
-        <Panel className="p-6 xl:col-span-5">
-          <StageStepper
-            stages={mergedStages}
-            expanded={expanded}
-            onToggle={(handler) => setExpanded((current) => (current === handler ? null : handler))}
-            live={illustrative}
-            simulationStep={simulationStep}
-            reduce={reduce}
-          />
-        </Panel>
-
-        <div className="xl:col-span-7">
-          {/* 3D agent stage (code-split: three.js only loads on this screen). */}
-          <Panel className="relative overflow-hidden p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-bold tracking-tight text-fg">Tu agente en acción</h2>
-                <p className="mt-1 text-sm text-muted">Cada tarjeta es un brief; cuando termina, sale la propuesta.</p>
-              </div>
-              {reviewCount > 0 && <Badge tone="review">{reviewCount} por revisar</Badge>}
-            </div>
-            <div className="mt-4 h-[440px] w-full">
-              <AgentSceneLazy steps={executionSteps} isProcessing={isLive} />
-            </div>
-          </Panel>
-        </div>
-      </div>
+      <Panel className="mt-4 p-6 sm:p-8">
+        <AgentRail
+          stages={mergedStages}
+          live={illustrative}
+          simulationStep={simulationStep}
+          reduce={reduce}
+          briefId={execution?.briefId}
+          onNavigate={onNavigate}
+          selected={expanded}
+          onSelect={setExpanded}
+        />
+      </Panel>
     </div>
   );
 }

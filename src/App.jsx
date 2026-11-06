@@ -263,7 +263,7 @@ export default function App() {
           <AnimatePresence mode="wait" initial={false}>
             <motion.div key={activeView} {...transition}>
               {activeView === "dashboard" && <DashboardView analytics={analytics} proposals={proposals} clients={clients} queue={queue} briefs={briefs} activeExecution={activeExecution} recentExecution={recentExecution} onNavigate={setActiveView} onOpenProposal={openProposal} onOpenBrief={openBrief} />}
-              {activeView === "pipeline" && <PipelineView activeExecution={activeExecution} recentExecution={recentExecution} onExecutionChange={handleExecution} isProcessing={isProcessing} />}
+              {activeView === "pipeline" && <PipelineView activeExecution={activeExecution} recentExecution={recentExecution} onExecutionChange={handleExecution} isProcessing={isProcessing} onNavigate={setActiveView} />}
               {activeView === "inbox" && <InboxView clients={clients} briefs={briefs} selectedBrief={selectedBrief} onBriefCreated={handleBriefCreated} onBriefSelected={setSelectedBrief} onQuotation={handleQuotation} onExecution={handleExecution} isProcessing={isProcessing} onProcessing={setIsProcessing} onClientCreated={handleClientCreated} onNavigate={setActiveView} />}
               {activeView === "pricing" && <PricingView pricingModel={pricingModel} proposals={proposals} onPricingModel={setPricingModel} onRefresh={() => loadWorkspace()} />}
               {activeView === "proposals" && <ProposalsView proposals={proposals} queue={queue} onRefresh={() => loadWorkspace()} focusProposalId={focusProposalId} onFocusHandled={() => setFocusProposalId(null)} />}

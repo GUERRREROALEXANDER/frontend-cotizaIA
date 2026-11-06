@@ -260,10 +260,10 @@ export function Badge({ tone = "neutral", children, className = "" }) {
   );
 }
 
-export function StatusBadge({ status }) {
+export function StatusBadge({ status, className = "" }) {
   const normalized = String(status || "PENDING").toUpperCase();
   return (
-    <Badge tone={statusTone[normalized] || "neutral"}>
+    <Badge tone={statusTone[normalized] || "neutral"} className={className}>
       <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />
       {statusLabels[normalized] || normalized.replaceAll("_", " ").toLowerCase()}
     </Badge>

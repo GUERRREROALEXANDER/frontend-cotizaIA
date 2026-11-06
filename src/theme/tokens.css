@@ -41,12 +41,13 @@
   --chart-5: #d25a43;
   --chart-line: #3f8f2a;
   --chart-fill: #9fe870;
-  /* Status badges: soft tint + dark ink of the same hue. */
-  --status-new-bg: #e4eefb;      --status-new-fg: #1f4f8f;
-  --status-review-bg: #fdf0cf;   --status-review-fg: #7a4f00;
-  --status-sent-bg: #d9f1f4;     --status-sent-fg: #075f70;
+  /* Status fills: solid, saturated, one hue per kanban group; fg passes 4.5:1
+     on its own fill (2026-11-06 unslop, the old pastel tints read as filler). */
+  --status-new-bg: #2563c9;      --status-new-fg: #ffffff;
+  --status-review-bg: #f5b32e;   --status-review-fg: #3a2400;
+  --status-sent-bg: #077a8c;     --status-sent-fg: #ffffff;
   --status-won-bg: #163300;      --status-won-fg: #9fe870;
-  --status-closed-bg: #fbe3de;   --status-closed-fg: #9a2f1f;
+  --status-closed-bg: #cb272f;   --status-closed-fg: #ffffff;
   --shadow-sm: 0 0 0 1px rgb(14 15 12 / 0.06), 0 1px 2px rgb(14 15 12 / 0.04);
   --shadow-lift: 0 0 0 1px rgb(14 15 12 / 0.06), 0 6px 20px rgb(14 15 12 / 0.08);
   --shadow-overlay: 0 10px 32px rgb(14 15 12 / 0.15), 0 40px 40px rgb(14 15 12 / 0.04);
@@ -85,11 +86,11 @@
   --chart-5: #c9604b;
   --chart-line: #9fe870;
   --chart-fill: #9fe870;
-  --status-new-bg: rgb(74 127 208 / 0.18);   --status-new-fg: #9cc0f5;
-  --status-review-bg: rgb(185 133 31 / 0.2); --status-review-fg: #f0c66a;
-  --status-sent-bg: rgb(31 149 171 / 0.2);   --status-sent-fg: #79d3e3;
-  --status-won-bg: #9fe870;                  --status-won-fg: #163300;
-  --status-closed-bg: rgb(201 96 75 / 0.2);  --status-closed-fg: #f3a594;
+  --status-new-bg: #5e95ec;      --status-new-fg: #06132b;
+  --status-review-bg: #f5b32e;   --status-review-fg: #2b1a00;
+  --status-sent-bg: #33b6cb;     --status-sent-fg: #03252b;
+  --status-won-bg: #9fe870;      --status-won-fg: #163300;
+  --status-closed-bg: #ff6f61;   --status-closed-fg: #2e0602;
   --shadow-sm: 0 0 0 1px rgb(241 245 236 / 0.05);
   --shadow-lift: 0 0 0 1px rgb(241 245 236 / 0.08), 0 10px 30px rgb(0 0 0 / 0.45);
   --shadow-overlay: 0 24px 60px -12px rgb(0 0 0 / 0.6);
