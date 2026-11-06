@@ -23,4 +23,15 @@ export default defineConfig({
       "/actuator": backendProxy,
     },
   },
+  // Production build served locally (vite preview) for remote demos through
+  // an ngrok tunnel: same backend proxy, and the tunnel hostnames allowed.
+  preview: {
+    port: 4173,
+    strictPort: true,
+    allowedHosts: [".ngrok-free.app", ".ngrok-free.dev", ".ngrok.app", ".ngrok.io", ".lhr.life"],
+    proxy: {
+      "/api": backendProxy,
+      "/actuator": backendProxy,
+    },
+  },
 });
