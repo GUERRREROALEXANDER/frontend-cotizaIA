@@ -28,7 +28,7 @@ export function ProposalCard({ proposal, onClick, layoutId, selected = false }) 
         <p className="display mt-3 block text-[1.65rem] leading-none tabular-nums" title={formatCurrency(proposal.total)}>
           {formatCompactCop(proposal.total)}
         </p>
-        <StatusBadge status={proposal.status} className="mt-3" />
+        <StatusBadge status={proposal.status} className="mt-3 self-start" />
       </div>
     </motion.article>
   );

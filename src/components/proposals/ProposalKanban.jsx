@@ -5,6 +5,14 @@ import { ProposalCard } from "./ProposalCard.jsx";
 
 // Column chips use the shared status palette (tokens --status-*), the same
 // colors as the badges and the dashboard donut.
+const toneBar = {
+  new: "bg-[var(--status-new-bg)]",
+  review: "bg-[var(--status-review-bg)]",
+  sent: "bg-[var(--status-sent-bg)]",
+  won: "bg-[var(--status-won-bg)]",
+  closed: "bg-[var(--status-closed-bg)]",
+};
+
 const toneChip = {
   new: "bg-[var(--status-new-bg)] text-[var(--status-new-fg)]",
   review: "bg-[var(--status-review-bg)] text-[var(--status-review-fg)]",
@@ -89,7 +97,8 @@ export function ProposalKanban({ proposals, selectedId, onSelect }) {
             aria-label={`Columna ${column.label}`}
             className="flex w-72 shrink-0 snap-start flex-col gap-4 rounded-2xl bg-surface-2/60 p-3 xl:w-auto xl:min-w-0"
           >
-            <header className="px-2 pt-2">
+            <header className="px-2 pt-1">
+              <span aria-hidden="true" className={`mb-4 block h-1 rounded-full ${toneBar[column.tone]}`} />
               <h3 className="flex items-center gap-2.5 text-sm font-semibold text-fg">
                 <span className={`tabular grid h-7 min-w-7 place-items-center rounded-full px-2 text-xs font-semibold ${toneChip[column.tone]}`}>
                   {column.count}
