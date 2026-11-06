@@ -8,3 +8,7 @@ dist/
 .stage/
 .skills/
 .qa/
+
+# Playwright
+test-results/
+playwright-report/

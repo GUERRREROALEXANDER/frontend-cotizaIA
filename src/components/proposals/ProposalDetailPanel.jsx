@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, FileText, Loader2, Send, ShieldCheck } from "lucide-react";
-import { Panel, SectionHeading, Button, EmptyState, InkPanel, statusLabels } from "../../components/ui.jsx";
+import { Panel, SectionHeading, Button, EmptyState, InkPanel, Badge, statusLabels } from "../../components/ui.jsx";
 import { formatCurrency, formatDate } from "../../components/ui.jsx";
 import { CountUp } from "../../motion/Motion.jsx";
 import { post } from "../../api.js";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { duration, ease, staggerDelay } from "../../motion/presets.js";
 
 const pricingLabels = { FIXED: "Precio fijo", HOURLY: "Por horas", PHASED: "Por fases" };
+const draftOriginLabels = { AI: "Redactado por IA", TEMPLATE: "Plantilla segura" };
 
 // Lifecycle moves the proposal is allowed to make. The first one available is
 // the primary action; the rest stay as quiet outlined pills.
@@ -108,6 +109,62 @@ export function ProposalDetailPanel({ detail, proposals, onAction, onClose, work
         </>
       ),
     },
+    detail.draft
+      ? {
+          key: "draft",
+          title: "Borrador de la propuesta",
+          body: (
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-start gap-3">
+                <Badge tone={detail.draft.origin === "AI" ? "accent" : "neutral"}>
+                  {draftOriginLabels[detail.draft.origin] || draftOriginLabels.TEMPLATE}
+                </Badge>
+                {detail.draft.summary && (
+                  <p className="min-w-[240px] flex-1 text-sm leading-6 text-muted">{detail.draft.summary}</p>
+                )}
+              </div>
+              {detail.draft.sections?.length > 0 && (
+                <div className="space-y-4">
+                  {detail.draft.sections.map((draftSection, sectionIndex) => (
+                    <div key={`${draftSection.title}-${sectionIndex}`}>
+                      {draftSection.title && (
+                        <h3 className="text-[15px] font-semibold text-fg">{draftSection.title}</h3>
+                      )}
+                      {(draftSection.paragraphs || []).map((paragraph, paragraphIndex) => (
+                        <p
+                          key={`${sectionIndex}-${paragraphIndex}`}
+                          className="mt-1.5 text-sm leading-6 text-muted"
+                        >
+                          {paragraph.text}
+                          {paragraph.sources?.length > 0 && (
+                            <sup className="ml-1 font-mono text-[10px] text-faint">
+                              [{paragraph.sources.join(", ")}]
+                            </sup>
+                          )}
+                        </p>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {detail.draft.sources?.length > 0 && (
+                <div className="border-t border-line pt-4">
+                  <p className="text-xs font-medium text-faint">Fuentes</p>
+                  <ol className="mt-2 space-y-1">
+                    {detail.draft.sources.map((source) => (
+                      <li key={`${source.number}-${source.documentName}`} className="text-sm text-muted">
+                        <span className="tabular mr-2 font-mono text-xs text-faint">{source.number}.</span>
+                        {source.documentName}
+                        {source.page != null ? ` · p. ${source.page}` : ""}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+            </div>
+          ),
+        }
+      : null,
     detail.schedule?.phases?.length
       ? {
           key: "schedule",

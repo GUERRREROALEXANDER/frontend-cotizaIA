@@ -154,7 +154,6 @@ export default function ClientsView({ clients, onClientsChange, onRefresh }) {
                 value={draft.email}
                 onChange={(event) => setDraft({ ...draft, email: event.target.value })}
                 placeholder="contacto@empresa.com"
-                required
               />
             </div>
             <LimitedInput
