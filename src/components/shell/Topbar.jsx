@@ -38,8 +38,11 @@ export default function Topbar({ title, group, user, theme, onToggleTheme, onOpe
         <IconButton icon={theme === "dark" ? Sun : Moon} label={theme === "dark" ? "Tema claro" : "Tema oscuro"} onClick={onToggleTheme} />
         <span className="mx-1 hidden h-6 w-px bg-line sm:block" aria-hidden />
         <div className="hidden text-right leading-tight sm:block">
-          <p className="text-sm font-semibold text-fg">Agencia #{user?.agencyId ?? "?"}</p>
-          <p className="text-xs text-faint">{user?.role === "OWNER" ? "Propietario" : user?.role || "Operador"}</p>
+          <p className="text-sm font-semibold text-fg">{user?.agencyName || `Agencia #${user?.agencyId ?? "?"}`}</p>
+          <p className="text-xs text-faint">
+            {user?.fullName ? `${user.fullName} · ` : ""}
+            {user?.role === "OWNER" ? "Propietario" : user?.role || "Operador"}
+          </p>
         </div>
         <IconButton icon={LogOut} label="Cerrar sesión" onClick={onSignOut} className="hover:text-danger" />
       </div>
