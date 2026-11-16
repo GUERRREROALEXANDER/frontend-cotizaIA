@@ -8,7 +8,8 @@ import tailwindcss from "@tailwindcss/vite";
 // with "Invalid CORS request"; dropping it keeps backend CORS strict for real
 // cross-origin deployments while dev works from any host.
 const backendProxy = {
-  target: "http://localhost:8080",
+  // BACKEND_URL (shell env, never bundled) when the backend is not on :8080.
+  target: process.env.BACKEND_URL || "http://localhost:8080",
   changeOrigin: true,
   configure: (proxy) => {
     proxy.on("proxyReq", (proxyReq) => proxyReq.removeHeader("origin"));
