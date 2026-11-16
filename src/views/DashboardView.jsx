@@ -26,6 +26,7 @@ export default function DashboardView({
   onNavigate,
   onOpenProposal,
   onOpenBrief,
+  user,
 }) {
   const reduce = useReducedMotion();
   const lift = reduce ? undefined : { y: -3 };
@@ -60,7 +61,7 @@ export default function DashboardView({
           <div className="min-w-0">
             <MaskedText
               as="h1"
-              text={`${greetingForHour()}, Agencia`}
+              text={`${greetingForHour()}, ${user?.fullName?.trim().split(/\s+/)[0] || "Agencia"}`}
               className="display block text-[clamp(2.25rem,4.5vw,3.75rem)] text-ink-fg"
             />
             <p className="mt-3 max-w-[60ch] text-base text-ink-text/80">{summary}</p>
