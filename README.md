@@ -42,6 +42,6 @@ El directorio de distribución es `dist/`. En despliegues independientes, config
 
 - Inicio de sesión y registro: `/api/auth/login` y `/api/auth/register`.
 - Resumen, briefs, clientes, ejecuciones, estrategia de precios y propuestas: `/api/analytics`, `/api/briefs`, `/api/clients`, `/api/executions`, `/api/agency/pricing-model` y `/api/proposals`.
-- Los briefs se pueden crear, consultar por identificador y procesar. El backend no ofrece un endpoint para listar todo el historial de briefs; por eso, la bandeja conserva localmente los briefs creados en este navegador y consulta su detalle en el servidor.
+- Los briefs se pueden crear, listar (`GET /api/briefs`) y consultar por identificador y procesar.
 - Los recargos/descuentos de la vista de precios son una previsualización local. El modelo de precio y las horas de ítems de una propuesta sí se guardan a través de las operaciones disponibles en la API.
 - La vista de progreso durante el procesamiento es ilustrativa. Los pasos mostrados como resultados y duraciones se cargan desde las ejecuciones devueltas por el backend.

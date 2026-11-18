@@ -1,6 +1,6 @@
 # Backend API used by the frontend
 
-All calls go through `src/api.js` (`get`, `post`, `put`, `del`, `upload`). JWT in `localStorage["cotizaia.accessToken"]`. Errors come back as `{ "error": "..." }` (400/404/409/413/422/503) or `{ "error": "Validation failed", "fields": {...} }`.
+All calls go through `src/api.js` (`get`, `post`, `put`, `del`, `upload`). Session in HttpOnly cookies + CSRF double-submit header `X-XSRF-TOKEN`; nothing in localStorage. Errors come back as `{ "error": "..." }` (400/404/409/413/422/503) or `{ "error": "Validation failed", "fields": {...} }`.
 
 ## Auth
 - `POST /api/auth/register` `{agencyName≤255, ownerFullName, email, password 8..100}` → `AuthResponse {token, tokenType, expiresAt, agencyId, userId, role}`
@@ -32,7 +32,7 @@ All calls go through `src/api.js` (`get`, `post`, `put`, `del`, `upload`). JWT i
 - `GET /api/briefs/{id}/attachment` → the original PDF (only PDF briefs)
 - `POST /api/briefs/{id}/process` → `QuotationResponse {briefId, proposalId, proposalStatus, executionId, executionStatus, halted, subtotal, total, pricingModel, documents, questions}`
 - `POST /api/briefs/{id}/questions/{questionId}/answer` `{answer ≤ 2000}`
-- No endpoint lists all briefs: the inbox keeps recently created ones in localStorage (existing behavior).
+- `GET /api/briefs` → lists briefs, newest first.
 
 ## Executions
 - `GET /api/executions?briefId=` , `GET /api/executions/{id}` → `{id, briefId, status, startedAt, finishedAt, errorMessage, steps: [{id, stepOrder, handler, inputSummary, outputSummary, durationMs, ...}]}`

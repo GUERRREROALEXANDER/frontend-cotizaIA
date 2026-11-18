@@ -1,25 +1,29 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, FileText, Loader2, Send, ShieldCheck } from "lucide-react";
+import { CheckCircle2, ChevronDown, Clock, FileText, Loader2, MessageSquare, Send, ShieldCheck, XCircle } from "lucide-react";
 import { Panel, SectionHeading, Button, EmptyState, InkPanel, Badge, statusLabels } from "../../components/ui.jsx";
 import { formatCurrency, formatDate } from "../../components/ui.jsx";
 import { CountUp } from "../../motion/Motion.jsx";
-import { post } from "../../api.js";
+import { availableActions } from "./proposalActions.js";
 import { StatusTimeline } from "./StatusTimeline.jsx";
 import { ProposalItemsTable } from "./ProposalItemsTable.jsx";
 import { ProposalDocumentsList } from "./ProposalDocumentsList.jsx";
-import { toast } from "sonner";
 import { duration, ease, staggerDelay } from "../../motion/presets.js";
 
 const pricingLabels = { FIXED: "Precio fijo", HOURLY: "Por horas", PHASED: "Por fases" };
 const draftOriginLabels = { AI: "Redactado por IA", TEMPLATE: "Plantilla segura" };
 
-// Lifecycle moves the proposal is allowed to make. The first one available is
-// the primary action; the rest stay as quiet outlined pills.
-const allowedTransitions = [
-  { action: "approve", label: "Aprobar", icon: ShieldCheck, available: (context) => context.awaitingReview },
-  { action: "send", label: "Enviar al cliente", icon: Send, available: (context) => context.status === "APPROVED" },
-];
+// Which moves are offered comes from the proposal's own state (proposalActions.js);
+// this only maps each move to its icon.
+const actionIcons = {
+  approve: ShieldCheck,
+  send: Send,
+  accept: CheckCircle2,
+  negotiate: MessageSquare,
+  reject: XCircle,
+  expire: Clock,
+};
+
 
 // On the forest panel the quiet pill needs lime ink instead of the forest
 // border the light secondary variant uses.
@@ -52,21 +56,9 @@ export function ProposalDetailPanel({ detail, proposals, onAction, onClose, work
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const awaitingReview = proposals.some((item) => item.id === detail?.id);
-
-  const runAction = async (action) => {
-    if (!detail) return;
-    try {
-      const updated = await post(`/api/proposals/${detail.id}/${action}`);
-      onAction(updated);
-      toast.success(
-        action === "approve"
-          ? "Propuesta aprobada para continuar con el envío."
-          : "Propuesta enviada al cliente."
-      );
-    } catch (error) {
-      toast.error(error.message);
-    }
+  // The parent owns the request, the working state and the toast.
+  const runAction = (action) => {
+    if (detail) onAction(action);
   };
 
   if (!detail) {
@@ -83,9 +75,10 @@ export function ProposalDetailPanel({ detail, proposals, onAction, onClose, work
 
   const createdAt = proposals.find((item) => item.id === detail.id)?.createdAt;
   const createdLabel = createdAt ? `Generada el ${formatDate(createdAt)}` : "Recién generada";
-  const transitions = allowedTransitions.filter((transition) =>
-    transition.available({ awaitingReview, status: detail.status })
-  );
+  const transitions = availableActions(detail).map((transition) => ({
+    ...transition,
+    icon: actionIcons[transition.action],
+  }));
 
   const sections = [
     {

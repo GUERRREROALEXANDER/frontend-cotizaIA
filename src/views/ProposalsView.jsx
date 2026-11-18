@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { LayoutDashboard, List } from "lucide-react";
 import { get, post } from "../api.js";
 import { toast } from "sonner";
+import { ACTION_TOASTS } from "../components/proposals/proposalActions.js";
 import { PageHeader, Panel, formatCurrency } from "../components/ui.jsx";
 import { CountUp, StaggerItem } from "../motion/Motion.jsx";
 import { ProposalKanban, summarizeProposals } from "../components/proposals/ProposalKanban.jsx";
@@ -91,14 +92,12 @@ export default function ProposalsView({ proposals, onRefresh, focusProposalId, o
     setWorking(action);
     setError("");
     try {
-      const updated = await post(`/api/proposals/${detail.id}/${action}`);
+      let updated = await post(`/api/proposals/${detail.id}/${action}`);
+      // Accepting answers with a receipt (contract + deposit), not the proposal: reload it.
+      if (action === "accept") updated = await get(`/api/proposals/${detail.id}`);
       setDetail(updated);
       await onRefresh();
-      toast.success(
-        action === "approve"
-          ? "Propuesta aprobada para continuar con el envío."
-          : "Propuesta enviada al cliente."
-      );
+      toast.success(ACTION_TOASTS[action] ?? "Propuesta actualizada.");
     } catch (requestError) {
       setError(requestError.message);
       toast.error(requestError.message);

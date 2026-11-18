@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Eye, EyeOff, Moon, Sun } from "lucide-react";
-import { post } from "../api.js";
+import { post, warmBackend } from "../api.js";
 import { LIMITS } from "../limits.js";
 import { MaskedText } from "../motion/Motion.jsx";
 import { duration, ease } from "../motion/presets.js";
@@ -18,6 +18,18 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [waking, setWaking] = useState(false);
+
+  // Render free tier sleeps: wake it while the user still types, so the
+  // login POST rarely pays the ~50s cold start. Show a hint if it drags.
+  useEffect(() => {
+    const timer = setTimeout(() => setWaking(true), 3000);
+    warmBackend()?.finally?.(() => {
+      clearTimeout(timer);
+      setWaking(false);
+    });
+    return () => clearTimeout(timer);
+  }, []);
 
   const updateField = (event) =>
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -216,6 +228,11 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
             <Button type="submit" variant="primary" size="lg" loading={busy} className="w-full">
               {busy ? "Un momento…" : mode === "register" ? "Crear cuenta" : "Ingresar"}
             </Button>
+            {waking && !error && (
+              <p role="status" className="text-center text-xs text-muted">
+                Despertando el servidor (frío en Render)… puede tardar ~30–60 s solo la primera vez.
+              </p>
+            )}
           </form>
 
           <div className="mt-6 flex justify-center">

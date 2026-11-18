@@ -71,8 +71,12 @@ export default function App() {
     if (showLoading) setRefreshing(true);
     setWorkspaceError("");
     try {
+      // Critical first: identity unblocks the shell immediately so the user
+      // sees the app even while a cold backend still serves the rest.
+      const identity = await get("/api/auth/me");
+      setUser(identity);
+      setLoadingWorkspace(false);
       const [
-        identity,
         nextAnalytics,
         nextProposals,
         nextQueue,
@@ -81,7 +85,6 @@ export default function App() {
         nextBriefs,
         nextExecutions,
       ] = await Promise.all([
-        get("/api/auth/me"),
         get("/api/analytics"),
         get("/api/proposals"),
         get("/api/proposals/queue"),
@@ -217,7 +220,7 @@ export default function App() {
     </main>
   );
 
-  if (checkingSession || (authenticated && loadingWorkspace)) {
+  if (checkingSession) {
     return <>{loadingScreen}{toaster}</>;
   }
 

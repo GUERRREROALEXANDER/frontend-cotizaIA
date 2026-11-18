@@ -14,6 +14,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { downloadBriefAttachment, get, post, upload } from "../api.js";
+import { canRetryProcessing } from "./briefState.js";
 import {
   Badge,
   Button,
@@ -168,7 +169,8 @@ export default function InboxView({
 
   // Single processing pipeline used by both the typed form and the PDF flow.
   async function runProcessing(briefId) {
-    const quotation = await post(`/api/briefs/${briefId}/process`);
+    // A real quotation can take ~2 minutes when the embedding provider is rate limited.
+    const quotation = await post(`/api/briefs/${briefId}/process`, undefined, { timeoutMs: 240000 });
     onQuotation?.(quotation);
     if (quotation.executionId) {
       const execution = await get(`/api/executions/${quotation.executionId}`);
@@ -217,6 +219,31 @@ export default function InboxView({
       setBriefText("");
       setSubject("");
       setProjectType("");
+    } catch (requestError) {
+      reportError(setError, requestError.message);
+    } finally {
+      setBusy(false);
+      onProcessing?.(false);
+    }
+  }
+
+  // Re-runs the agent on a brief whose first run failed or never finished.
+  async function retryProcessing() {
+    if (!detail) return;
+    setError("");
+    setMessage("");
+    setPipelineReady(false);
+    setBusy(true);
+    setStage(0);
+    onProcessing?.(true);
+    try {
+      const quotation = await runProcessing(detail.id);
+      setMessage(
+        quotation.halted
+          ? `Brief ${detail.id} procesado. El agente requiere aclaraciones antes de cotizar.`
+          : `Propuesta ${quotation.proposalId} creada para el brief ${detail.id}.`,
+      );
+      setPipelineReady(true);
     } catch (requestError) {
       reportError(setError, requestError.message);
     } finally {
@@ -803,6 +830,11 @@ export default function InboxView({
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   {detail.proposalStatus && <StatusBadge status={detail.proposalStatus} />}
+                  {canRetryProcessing(detail) && (
+                    <Button size="sm" onClick={retryProcessing} disabled={busy}>
+                      Reintentar procesamiento
+                    </Button>
+                  )}
                   {isPdfDetail && (
                     <Button size="sm" icon={FileText} onClick={openOriginalPdf}>
                       Ver PDF original
