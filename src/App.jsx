@@ -19,6 +19,7 @@ import CatalogView from "./views/CatalogView.jsx";
 import ClientsView from "./views/ClientsView.jsx";
 import DashboardView from "./views/DashboardView.jsx";
 import InboxView from "./views/InboxView.jsx";
+import KnowledgeView from "./views/KnowledgeView.jsx";
 import PipelineView from "./views/PipelineView.jsx";
 import PricingView from "./views/PricingView.jsx";
 import ProposalsView from "./views/ProposalsView.jsx";
@@ -144,7 +145,7 @@ export default function App() {
     return () => window.removeEventListener("cotizaia:session-expired", handleExpired);
   }, [resetSession]);
 
-  // 1-8 jump between views; Ctrl/Cmd+K opens the command palette.
+  // 1-9 jump between views; Ctrl/Cmd+K opens the command palette.
   useEffect(() => {
     function handleShortcut(event) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
@@ -273,6 +274,7 @@ export default function App() {
               {activeView === "clients" && <ClientsView clients={clients} onClientsChange={setClients} onRefresh={() => loadWorkspace()} />}
               {activeView === "catalog" && <CatalogView />}
               {activeView === "rates" && <RatesView />}
+              {activeView === "knowledge" && <KnowledgeView />}
             </motion.div>
           </AnimatePresence>
         </main>
