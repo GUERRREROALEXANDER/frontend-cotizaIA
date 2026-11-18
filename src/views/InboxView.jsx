@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { downloadBriefAttachment, get, post, upload } from "../api.js";
 import { canRetryProcessing } from "./briefState.js";
+import { progressToStage } from "./progressToStage.js";
 import {
   Badge,
   Button,
@@ -53,6 +54,30 @@ const briefLabel = {
   EMAIL: "Contenido del correo",
   WEB_FORM: "Descripción del proyecto",
 };
+
+// The agent run reports its real steps; one poll per second is enough to follow
+// a run that takes minutes, and cheap enough to leave running while it lasts.
+const PROGRESS_POLL_MS = 1000;
+
+// Starts polling GET /api/briefs/{id}/progress and returns the stop function.
+// A failed tick is swallowed on purpose: the ladder freezing for one second is
+// not worth interrupting a two-minute run over.
+function pollBriefProgress(briefId, onSteps) {
+  let active = true;
+  const tick = () => {
+    get(`/api/briefs/${briefId}/progress`)
+      .then((result) => {
+        if (active && Array.isArray(result?.steps)) onSteps(result.steps);
+      })
+      .catch(() => {});
+  };
+  tick();
+  const timer = window.setInterval(tick, PROGRESS_POLL_MS);
+  return () => {
+    active = false;
+    window.clearInterval(timer);
+  };
+}
 
 function channelLabel(source) {
   if (source === "PDF") return "PDF";
@@ -98,9 +123,12 @@ export default function InboxView({
   const [clientFormOpen, setClientFormOpen] = useState(false);
   const [clientForm, setClientForm] = useState({ name: "", email: "", company: "" });
   const [clientError, setClientError] = useState("");
-  const [stage, setStage] = useState(0);
+  const [progressSteps, setProgressSteps] = useState([]);
   const reduce = useReducedMotion();
   const lift = reduce ? undefined : { y: -2 };
+
+  // Which rung of the intake ladder is in flight, from the run's real steps.
+  const stage = progressToStage(progressSteps, intakeStages);
 
   useEffect(() => {
     setDetail(selectedBrief || null);
@@ -125,15 +153,6 @@ export default function InboxView({
       cancelled = true;
     };
   }, [detail?.proposalId]);
-
-  useEffect(() => {
-    if (!isProcessing) return undefined;
-    const timer = window.setInterval(
-      () => setStage((current) => Math.min(current + 1, intakeStages.length - 1)),
-      1900,
-    );
-    return () => window.clearInterval(timer);
-  }, [isProcessing]);
 
   async function selectBrief(brief) {
     setError("");
@@ -169,17 +188,23 @@ export default function InboxView({
 
   // Single processing pipeline used by both the typed form and the PDF flow.
   async function runProcessing(briefId) {
-    // A real quotation can take ~2 minutes when the embedding provider is rate limited.
-    const quotation = await post(`/api/briefs/${briefId}/process`, undefined, { timeoutMs: 240000 });
-    onQuotation?.(quotation);
-    if (quotation.executionId) {
-      const execution = await get(`/api/executions/${quotation.executionId}`);
-      onExecution?.(execution);
+    // Poll the run's real progress for as long as the request is in flight.
+    const stopPolling = pollBriefProgress(briefId, setProgressSteps);
+    try {
+      // A real quotation can take ~2 minutes when the embedding provider is rate limited.
+      const quotation = await post(`/api/briefs/${briefId}/process`, undefined, { timeoutMs: 240000 });
+      onQuotation?.(quotation);
+      if (quotation.executionId) {
+        const execution = await get(`/api/executions/${quotation.executionId}`);
+        onExecution?.(execution);
+      }
+      const updatedDetail = await get(`/api/briefs/${briefId}`);
+      setDetail(updatedDetail);
+      onBriefSelected?.(updatedDetail);
+      return quotation;
+    } finally {
+      stopPolling();
     }
-    const updatedDetail = await get(`/api/briefs/${briefId}`);
-    setDetail(updatedDetail);
-    onBriefSelected?.(updatedDetail);
-    return quotation;
   }
 
   function buildPayload() {
@@ -197,7 +222,7 @@ export default function InboxView({
     setMessage("");
     setPipelineReady(false);
     setBusy(true);
-    setStage(0);
+    setProgressSteps([]);
     onProcessing?.(true);
     try {
       const brief = await post("/api/briefs", {
@@ -234,7 +259,7 @@ export default function InboxView({
     setMessage("");
     setPipelineReady(false);
     setBusy(true);
-    setStage(0);
+    setProgressSteps([]);
     onProcessing?.(true);
     try {
       const quotation = await runProcessing(detail.id);
@@ -272,7 +297,7 @@ export default function InboxView({
     setPdfResult(null);
     setPipelineReady(false);
     setBusy(true);
-    setStage(0);
+    setProgressSteps([]);
     setUploadProgress(0);
     onProcessing?.(true);
     try {

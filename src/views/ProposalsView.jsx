@@ -2,7 +2,7 @@ import { formatCompactCop } from "../components/dashboard/dashboardData.js";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { LayoutDashboard, List } from "lucide-react";
-import { get, post } from "../api.js";
+import { get, post, del } from "../api.js";
 import { toast } from "sonner";
 import { ACTION_TOASTS } from "../components/proposals/proposalActions.js";
 import { PageHeader, Panel, formatCurrency } from "../components/ui.jsx";
@@ -110,6 +110,41 @@ export default function ProposalsView({ proposals, onRefresh, focusProposalId, o
     setDetailOpen(false);
     setSelectedId("");
   }, []);
+
+  // Commercial extras live on the same panel as the lifecycle actions and the
+  // backend answers both calls with the full proposal detail, so the state update
+  // is the same shape. A 409 (already sent) surfaces through the shared error.
+  const handleExtra = useCallback(async (type) => {
+    if (!detail) return;
+    setWorking(`extra-${type}`);
+    setError("");
+    try {
+      setDetail(await post(`/api/proposals/${detail.id}/extras`, { type }));
+      await onRefresh();
+      toast.success("Ajuste comercial aplicado al total.");
+    } catch (requestError) {
+      setError(requestError.message);
+      toast.error(requestError.message);
+    } finally {
+      setWorking("");
+    }
+  }, [detail, onRefresh]);
+
+  const handleRemoveExtra = useCallback(async (extraId) => {
+    if (!detail) return;
+    setWorking(`remove-extra-${extraId}`);
+    setError("");
+    try {
+      setDetail(await del(`/api/proposals/${detail.id}/extras/${extraId}`));
+      await onRefresh();
+      toast.success("Ajuste comercial retirado.");
+    } catch (requestError) {
+      setError(requestError.message);
+      toast.error(requestError.message);
+    } finally {
+      setWorking("");
+    }
+  }, [detail, onRefresh]);
 
   const handleDownload = useCallback(async (type, fileName) => {
     if (!detail) return;
@@ -242,6 +277,8 @@ export default function ProposalsView({ proposals, onRefresh, focusProposalId, o
                 onClose={handleCloseDetail}
                 working={working}
                 onDownload={handleDownload}
+                onExtra={handleExtra}
+                onRemoveExtra={handleRemoveExtra}
               />
             </motion.div>
           )}

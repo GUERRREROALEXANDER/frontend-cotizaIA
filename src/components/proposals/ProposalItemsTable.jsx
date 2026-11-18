@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Badge, formatCurrency } from "../../components/ui.jsx";
 import { CountUp } from "../../motion/Motion.jsx";
 import { duration, ease, staggerDelay } from "../../motion/presets.js";
+import { extraLabel } from "./extras.js";
 
 const sourceBadges = {
   MEMORY: { label: "Memoria", tone: "accent" },
@@ -93,7 +94,7 @@ export function ProposalItemsTable({ items, extras, subtotal, total }) {
         <div className="space-y-2 border-t border-line pt-4">
           {extras.map((extra) => (
             <div key={extra.id} className="flex justify-between gap-4 text-sm">
-              <span className="text-muted">{extra.type}</span>
+              <span className="text-muted">{extraLabel(extra.type)}</span>
               <span className="tabular font-mono text-fg">{formatCurrency(extra.amount)}</span>
             </div>
           ))}

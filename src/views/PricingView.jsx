@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ArrowDownRight, ArrowUpRight, Check, Clock3, Coins, Layers3, Save, Sparkles } from "lucide-react";
+import { Check, Clock3, Coins, Layers3, Save } from "lucide-react";
 import { get, put } from "../api.js";
 import { toast } from "sonner";
 import { PageHeader, Panel, SectionHeading, Button, InkPanel, statusLabels, formatCurrency } from "../components/ui.jsx";
@@ -28,9 +28,6 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [hoursDraft, setHoursDraft] = useState({});
-  const [urgency, setUrgency] = useState(false);
-  const [discount, setDiscount] = useState(false);
-  const [discountRate, setDiscountRate] = useState(5);
   const reduce = useReducedMotion();
   const messageMotion = reduce ? reducedFade : viewTransition;
 
@@ -54,11 +51,6 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [selectedProposalId]);
-
-  const previewTotal = useMemo(() => {
-    const base = Number(proposal?.total || 0);
-    return base * (urgency ? 1.2 : 1) * (discount ? 1 - Math.max(0, Number(discountRate) || 0) / 100 : 1);
-  }, [proposal?.total, urgency, discount, discountRate]);
 
   const clearMessages = () => {
     setError("");
@@ -186,9 +178,13 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
         </div>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_.9fr]">
+      <div className="grid gap-6">
         <Panel className="p-6">
           <SectionHeading title="Ajuste de alcance" description="Edita las horas de los ítems en una propuesta procesada." />
+          <p className="mb-6 text-sm leading-6 text-muted">
+            La urgencia, el descuento y la garantía extendida son registros reales de la propuesta: se agregan o
+            quitan desde su detalle, mientras está en revisión y sin aprobar.
+          </p>
           <ComboSelect
             label="Propuesta"
             value={selectedProposalId}
@@ -279,87 +275,6 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
             </motion.div>
           )}
         </Panel>
-
-        <Panel className="p-6">
-          <SectionHeading title="Simulador de modificadores" description="Previsualiza ajustes sobre el total actual." />
-          <div className="space-y-3">
-            <ToggleRow
-              icon={ArrowUpRight}
-              title="Entrega prioritaria"
-              description="Recargo ilustrativo del 20%"
-              active={urgency}
-              onToggle={() => setUrgency(!urgency)}
-            />
-            <ToggleRow
-              icon={ArrowDownRight}
-              title="Descuento comercial"
-              description="Descuento de referencia configurable"
-              active={discount}
-              onToggle={() => setDiscount(!discount)}
-            />
-          </div>
-
-          <AnimatePresence>
-            {discount && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: duration.state, ease: ease.out }}
-              >
-                <label className="mt-4 block text-sm text-muted">
-                  Porcentaje del descuento
-                  <div className="mt-2 flex items-center gap-3">
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={discountRate}
-                      onChange={(event) => setDiscountRate(event.target.value)}
-                      className={hoursFieldClass}
-                    />
-                    <span className="text-sm text-muted">%</span>
-                  </div>
-                </label>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <motion.div
-            {...(reduce ? reducedFade : { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, transition: { duration: duration.state, ease: ease.out } })}
-            className="relative mt-6 overflow-hidden rounded-2xl p-6"
-            style={{
-              background: "linear-gradient(135deg, var(--accent) 0%, var(--chart-fill) 40%, var(--chart-4) 140%)",
-              color: "var(--accent-fg)",
-            }}
-          >
-            {!reduce && (
-              <motion.span
-                aria-hidden
-                className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/35 to-transparent"
-                initial={{ x: "-120%" }}
-                animate={{ x: "320%" }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
-              />
-            )}
-            <p className="relative flex items-center gap-2 text-sm font-semibold text-accent-fg">
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-ink-fg" aria-hidden>
-                <Sparkles size={14} />
-              </span>
-              Estimación dinámica
-            </p>
-            <p className="display tabular relative mt-4 text-5xl text-accent-fg">
-              <CountUp key={previewTotal} value={previewTotal} format={formatCurrency} />
-            </p>
-            <p className="relative mt-3 text-sm text-accent-fg opacity-80">
-              {proposal ? "Vista previa calculada a partir del total de la propuesta." : "Selecciona una propuesta para ver una referencia."}
-            </p>
-          </motion.div>
-
-          <p className="mt-4 text-sm text-muted">
-            Simulación: no cambia la propuesta guardada.
-          </p>
-        </Panel>
       </div>
     </div>
   );
@@ -375,34 +290,5 @@ function InkStatus({ status }) {
       <span className="h-1.5 w-1.5 rounded-full bg-ink-fg" aria-hidden />
       {label}
     </span>
-  );
-}
-
-function ToggleRow({ icon: Icon, title, description, active, onToggle }) {
-  return (
-    <div className={`flex items-center gap-4 rounded-xl p-4 transition-colors duration-200 ${active ? "bg-accent-soft ring-1 ring-brand" : "bg-surface-2/60"}`}>
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-brand" aria-hidden>
-        <Icon size={18} strokeWidth={1.8} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[15px] font-medium text-fg">{title}</p>
-        <p className="mt-0.5 text-sm text-muted">{description}</p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={active}
-        aria-label={title}
-        onClick={onToggle}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ease-out ${active ? "bg-ink" : "bg-surface-2"}`}
-      >
-        <motion.span
-          layout
-          className={`absolute left-1 top-1 h-4 w-4 rounded-full shadow-card ${active ? "bg-ink-fg" : "bg-ink-text"}`}
-          animate={{ x: active ? 20 : 0 }}
-          transition={{ duration: duration.state, ease: ease.out }}
-        />
-      </button>
-    </div>
   );
 }
