@@ -1,3 +1,4 @@
+import { friendlyMessage } from "./friendlyError.js";
 const apiBase = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 // The browser never holds a credential: the backend sets HttpOnly cookies and
@@ -11,6 +12,27 @@ function readCookie(name) {
 }
 
 let csrfPending = null;
+let warmPending = null;
+
+// Fire-and-forget wake-up for cold backends (Render free tier sleeps).
+// Called once from AuthScreen mount so the login POST doesn't pay the
+// full cold-start cost. Safe to call repeatedly: shares one promise.
+export function warmBackend() {
+  if (!warmPending) {
+    warmPending = fetch(`${apiBase}/actuator/health`, { credentials: "same-origin" })
+      .catch(() => null)
+      .finally(() => {
+        warmPending = null;
+      });
+    void prefetchCsrf();
+  }
+  return warmPending;
+}
+
+export function prefetchCsrf() {
+  if (readCookie("XSRF-TOKEN") || csrfPending) return csrfPending;
+  return csrfToken();
+}
 
 // GET /api/auth/csrf issues the double-submit cookie when we do not have it yet.
 async function csrfToken() {
@@ -57,7 +79,9 @@ function refreshSession() {
   return refreshPending;
 }
 
-async function send(path, options) {
+async function send(path, requestOptions) {
+  // timeoutMs is ours, not fetch's: long agent runs ask for more than the default.
+  const { timeoutMs, ...options } = requestOptions;
   const method = String(options.method || "GET").toUpperCase();
   const headers = new Headers(options.headers || {});
   if (options.body && !(options.body instanceof FormData) && !headers.has("Content-Type")) {
@@ -73,6 +97,9 @@ async function send(path, options) {
       method,
       headers,
       credentials: "same-origin",
+      // Cold backends (Render free tier) can take ~50s to wake up on the
+      // first request; abort well after that instead of hanging forever.
+      signal: options.signal ?? AbortSignal.timeout(timeoutMs ?? 90000),
     });
   } catch (error) {
     if (error instanceof TypeError) {
@@ -80,7 +107,8 @@ async function send(path, options) {
         "No se pudo conectar con el backend. Verifica que CotizaIA esté iniciado y disponible en http://localhost:8080.",
       );
     }
-    throw error;
+    const friendly = friendlyMessage({ error });
+    throw friendly ? Object.assign(new Error(friendly), { cause: error }) : error;
   }
 }
 
@@ -136,9 +164,10 @@ export async function request(path, options = {}) {
       throw networkError();
     }
     const message =
-      typeof result === "string"
+      friendlyMessage({ status: response.status, body: result }) ??
+      (typeof result === "string"
         ? result
-        : result?.message || result?.error || `La solicitud falló (${response.status}).`;
+        : result?.message || result?.error || `La solicitud falló (${response.status}).`);
     const error = new Error(message);
     error.status = response.status;
     throw error;
@@ -150,9 +179,10 @@ export function get(path) {
   return request(path);
 }
 
-export function post(path, body) {
+export function post(path, body, { timeoutMs } = {}) {
   return request(path, {
     method: "POST",
+    ...(timeoutMs ? { timeoutMs } : {}),
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
 }

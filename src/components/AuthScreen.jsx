@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Eye, EyeOff, Moon, Sun } from "lucide-react";
-import { post } from "../api.js";
+import { post, warmBackend } from "../api.js";
+import {
+  VERIFY_MESSAGES,
+  authErrorMessage,
+  isEmailNotVerifiedError,
+  registerRequiresVerification,
+} from "../authVerification.js";
 import { LIMITS } from "../limits.js";
 import { MaskedText } from "../motion/Motion.jsx";
 import { duration, ease } from "../motion/presets.js";
@@ -18,6 +24,22 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [waking, setWaking] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [resendBusy, setResendBusy] = useState(false);
+  const [resendDone, setResendDone] = useState(false);
+  const [resendError, setResendError] = useState("");
+
+  // Render free tier sleeps: wake it while the user still types, so the
+  // login POST rarely pays the ~50s cold start. Show a hint if it drags.
+  useEffect(() => {
+    const timer = setTimeout(() => setWaking(true), 3000);
+    warmBackend()?.finally?.(() => {
+      clearTimeout(timer);
+      setWaking(false);
+    });
+    return () => clearTimeout(timer);
+  }, []);
 
   const updateField = (event) =>
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -27,22 +49,49 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
     setBusy(true);
     setError("");
     try {
-      const payload =
-        mode === "register"
-          ? form
-          : { email: form.email, password: form.password };
-      await post(`/api/auth/${mode === "register" ? "register" : "login"}`, payload);
+      if (mode === "register") {
+        const result = await post("/api/auth/register", form);
+        if (registerRequiresVerification(result)) {
+          setPendingEmail(form.email);
+          setResendDone(false);
+          setResendError("");
+          return;
+        }
+      } else {
+        await post("/api/auth/login", { email: form.email, password: form.password });
+      }
       onAuthenticated();
     } catch (requestError) {
-      setError(requestError.message);
+      if (isEmailNotVerifiedError({ status: requestError.status, message: requestError.message })) {
+        setPendingEmail(form.email);
+        setResendDone(false);
+        setResendError("");
+      }
+      setError(authErrorMessage(requestError));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function resendVerification() {
+    setResendBusy(true);
+    setResendError("");
+    try {
+      await post("/api/auth/resend-verification", { email: pendingEmail });
+      setResendDone(true);
+    } catch (requestError) {
+      setResendError(requestError.message);
+    } finally {
+      setResendBusy(false);
     }
   }
 
   function switchMode(next) {
     setMode(next);
     setError("");
+    setPendingEmail("");
+    setResendDone(false);
+    setResendError("");
   }
 
   const modes = [
@@ -153,6 +202,30 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
             })}
           </div>
 
+          {pendingEmail ? (
+            <div className="mt-7 flex flex-col gap-4">
+              <p role="status" className="rounded-lg border border-success/25 bg-success/10 px-3 py-2.5 text-xs leading-5 text-success">
+                {VERIFY_MESSAGES.checkInbox}. Te enviamos un enlace a {pendingEmail}: ábrelo para activar tu cuenta.
+              </p>
+              {resendDone ? (
+                <p role="status" className="text-xs leading-5 text-muted">
+                  {VERIFY_MESSAGES.resent}
+                </p>
+              ) : (
+                <Button type="button" variant="secondary" size="lg" loading={resendBusy} className="w-full" onClick={resendVerification}>
+                  {resendBusy ? "Enviando…" : "Reenviar correo"}
+                </Button>
+              )}
+              {resendError && (
+                <p role="alert" className="rounded-lg border border-danger/25 bg-danger/10 px-3 py-2.5 text-xs leading-5 text-danger">
+                  {resendError}
+                </p>
+              )}
+              <Button type="button" variant="ghost" size="sm" onClick={() => setPendingEmail("")}>
+                Usar otro correo
+              </Button>
+            </div>
+          ) : (
           <form onSubmit={submit} className="mt-7 flex flex-col gap-5">
             {mode === "register" && (
               <>
@@ -216,7 +289,13 @@ export default function AuthScreen({ onAuthenticated, theme, onToggleTheme }) {
             <Button type="submit" variant="primary" size="lg" loading={busy} className="w-full">
               {busy ? "Un momento…" : mode === "register" ? "Crear cuenta" : "Ingresar"}
             </Button>
+            {waking && !error && (
+              <p role="status" className="text-center text-xs text-muted">
+                Despertando el servidor (frío en Render)… puede tardar ~30–60 s solo la primera vez.
+              </p>
+            )}
           </form>
+          )}
 
           <div className="mt-6 flex justify-center">
             <AnimatedLink

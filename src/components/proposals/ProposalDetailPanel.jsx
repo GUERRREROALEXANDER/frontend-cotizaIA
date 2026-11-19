@@ -1,25 +1,44 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, FileText, Loader2, Send, ShieldCheck } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  Eye,
+  FileText,
+  Loader2,
+  MessageSquare,
+  Plus,
+  Send,
+  ShieldCheck,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 import { Panel, SectionHeading, Button, EmptyState, InkPanel, Badge, statusLabels } from "../../components/ui.jsx";
 import { formatCurrency, formatDate } from "../../components/ui.jsx";
 import { CountUp } from "../../motion/Motion.jsx";
-import { post } from "../../api.js";
+import { availableActions } from "./proposalActions.js";
+import { EXTRA_TYPES, canEditExtras, extraLabel } from "./extras.js";
 import { StatusTimeline } from "./StatusTimeline.jsx";
 import { ProposalItemsTable } from "./ProposalItemsTable.jsx";
 import { ProposalDocumentsList } from "./ProposalDocumentsList.jsx";
-import { toast } from "sonner";
 import { duration, ease, staggerDelay } from "../../motion/presets.js";
 
 const pricingLabels = { FIXED: "Precio fijo", HOURLY: "Por horas", PHASED: "Por fases" };
 const draftOriginLabels = { AI: "Redactado por IA", TEMPLATE: "Plantilla segura" };
 
-// Lifecycle moves the proposal is allowed to make. The first one available is
-// the primary action; the rest stay as quiet outlined pills.
-const allowedTransitions = [
-  { action: "approve", label: "Aprobar", icon: ShieldCheck, available: (context) => context.awaitingReview },
-  { action: "send", label: "Enviar al cliente", icon: Send, available: (context) => context.status === "APPROVED" },
-];
+// Which moves are offered comes from the proposal's own state (proposalActions.js);
+// this only maps each move to its icon.
+const actionIcons = {
+  approve: ShieldCheck,
+  send: Send,
+  accept: CheckCircle2,
+  negotiate: MessageSquare,
+  reject: XCircle,
+  expire: Clock,
+  viewed: Eye,
+};
+
 
 // On the forest panel the quiet pill needs lime ink instead of the forest
 // border the light secondary variant uses.
@@ -39,9 +58,19 @@ export function InkStatusBadge({ status }) {
   );
 }
 
-export function ProposalDetailPanel({ detail, proposals, onAction, onClose, working, onDownload }) {
+export function ProposalDetailPanel({
+  detail,
+  proposals,
+  onAction,
+  onClose,
+  working,
+  onDownload,
+  onExtra,
+  onRemoveExtra,
+}) {
   const [expandedSections, setExpandedSections] = useState({
     items: true,
+    extras: true,
     documents: true,
     history: true,
     deposit: true,
@@ -52,21 +81,9 @@ export function ProposalDetailPanel({ detail, proposals, onAction, onClose, work
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const awaitingReview = proposals.some((item) => item.id === detail?.id);
-
-  const runAction = async (action) => {
-    if (!detail) return;
-    try {
-      const updated = await post(`/api/proposals/${detail.id}/${action}`);
-      onAction(updated);
-      toast.success(
-        action === "approve"
-          ? "Propuesta aprobada para continuar con el envío."
-          : "Propuesta enviada al cliente."
-      );
-    } catch (error) {
-      toast.error(error.message);
-    }
+  // The parent owns the request, the working state and the toast.
+  const runAction = (action) => {
+    if (detail) onAction(action);
   };
 
   if (!detail) {
@@ -83,8 +100,17 @@ export function ProposalDetailPanel({ detail, proposals, onAction, onClose, work
 
   const createdAt = proposals.find((item) => item.id === detail.id)?.createdAt;
   const createdLabel = createdAt ? `Generada el ${formatDate(createdAt)}` : "Recién generada";
-  const transitions = allowedTransitions.filter((transition) =>
-    transition.available({ awaitingReview, status: detail.status })
+  const transitions = availableActions(detail).map((transition) => ({
+    ...transition,
+    icon: actionIcons[transition.action],
+  }));
+
+  // Extras are real money on the total, so they are only editable while the backend
+  // still accepts them (409 afterwards); the parent owns the requests and the toast.
+  const extras = Array.isArray(detail.extras) ? detail.extras : [];
+  const extrasEditable = canEditExtras(detail);
+  const addableExtras = EXTRA_TYPES.filter(
+    (type) => !extras.some((extra) => String(extra.type || "").toUpperCase() === type),
   );
 
   const sections = [
@@ -109,6 +135,72 @@ export function ProposalDetailPanel({ detail, proposals, onAction, onClose, work
         </>
       ),
     },
+    extrasEditable || extras.length
+      ? {
+          key: "extras",
+          title: "Ajustes comerciales",
+          body: (
+            <div className="space-y-3">
+              {extras.length === 0 && (
+                <p className="text-sm text-muted">La propuesta no tiene urgencia, descuento ni garantía extendida.</p>
+              )}
+              {extras.map((extra) => (
+                <div
+                  key={extra.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-surface-2 px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[15px] font-medium text-fg">{extraLabel(extra.type)}</p>
+                    <p className="tabular mt-0.5 font-mono text-xs text-muted">
+                      {extra.percentOrFixed != null ? `${extra.percentOrFixed}%` : "Monto fijo"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="tabular font-mono text-sm text-fg">{formatCurrency(extra.amount)}</span>
+                    {extrasEditable && (
+                      <button
+                        type="button"
+                        className="grid h-9 w-9 place-items-center rounded-full text-muted transition-colors duration-200 hover:bg-surface hover:text-danger disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={!!working}
+                        aria-busy={working === `remove-extra-${extra.id}` || undefined}
+                        aria-label={`Quitar ${extraLabel(extra.type)}`}
+                        onClick={() => onRemoveExtra?.(extra.id)}
+                      >
+                        {working === `remove-extra-${extra.id}` ? (
+                          <Loader2 size={16} className="animate-spin" aria-hidden />
+                        ) : (
+                          <Trash2 size={16} aria-hidden />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {extrasEditable && addableExtras.length > 0 && (
+                <div className="flex flex-wrap gap-2 border-t border-line pt-4">
+                  {addableExtras.map((type) => (
+                    <Button
+                      key={type}
+                      size="sm"
+                      icon={Plus}
+                      loading={working === `extra-${type}`}
+                      disabled={!!working}
+                      onClick={() => onExtra?.(type)}
+                    >
+                      {extraLabel(type)}
+                    </Button>
+                  ))}
+                </div>
+              )}
+              {!extrasEditable && (
+                <p className="text-xs leading-5 text-faint">
+                  Solo se ajustan mientras la propuesta está en revisión y sin aprobar.
+                </p>
+              )}
+            </div>
+          ),
+        }
+      : null,
     detail.draft
       ? {
           key: "draft",
@@ -165,18 +257,34 @@ export function ProposalDetailPanel({ detail, proposals, onAction, onClose, work
           ),
         }
       : null,
-    detail.schedule?.phases?.length
+    detail.schedule?.phases?.length || detail.schedule?.milestones?.length
       ? {
           key: "schedule",
           title: "Fases estimadas",
           body: (
             <div className="space-y-3">
-              {detail.schedule.phases.map((phase) => (
+              {(detail.schedule.phases || []).map((phase) => (
                 <div key={`${phase.name}-${phase.startWeek}`} className="flex justify-between gap-4 text-[15px]">
                   <span className="text-fg">{phase.name}</span>
                   <span className="tabular font-mono text-muted">Semanas {phase.startWeek} a {phase.endWeek}</span>
                 </div>
               ))}
+              {detail.schedule.milestones?.length > 0 && (
+                <div className="border-t border-line pt-4">
+                  <p className="mb-2 text-xs font-medium text-faint">Hitos</p>
+                  <div className="space-y-2">
+                    {detail.schedule.milestones.map((milestone, milestoneIndex) => (
+                      <div
+                        key={`${milestone.name}-${milestone.week}-${milestoneIndex}`}
+                        className="flex justify-between gap-4 text-[15px]"
+                      >
+                        <span className="text-fg">{milestone.name}</span>
+                        <span className="tabular shrink-0 font-mono text-muted">Semana {milestone.week}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ),
         }
@@ -193,11 +301,11 @@ export function ProposalDetailPanel({ detail, proposals, onAction, onClose, work
         />
       ),
     },
-    detail.statusHistory?.length
+    detail.statusHistory?.length || detail.viewedAt
       ? {
           key: "history",
           title: "Historial de estados",
-          body: <StatusTimeline history={detail.statusHistory} />,
+          body: <StatusTimeline history={detail.statusHistory} viewedAt={detail.viewedAt} />,
         }
       : null,
     detail.deposit
@@ -248,6 +356,12 @@ export function ProposalDetailPanel({ detail, proposals, onAction, onClose, work
               <div className="flex flex-wrap items-center gap-3">
                 <span className="text-sm font-medium text-ink-text/70">Propuesta comercial</span>
                 <InkStatusBadge status={detail.status} />
+                {detail.projectActive && (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-ink-fg/30 bg-ink-fg/15 px-3 py-1.5 text-xs font-semibold text-ink-fg">
+                    <span className="h-1.5 w-1.5 rounded-full bg-ink-fg" aria-hidden />
+                    Proyecto activado
+                  </span>
+                )}
               </div>
               <p className="display tabular mt-4 text-[clamp(2.75rem,5vw,3.75rem)] text-ink-fg">
                 <CountUp value={detail.total} format={formatCurrency} />

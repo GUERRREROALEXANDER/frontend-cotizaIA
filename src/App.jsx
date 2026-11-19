@@ -4,6 +4,8 @@ import { Sparkles } from "lucide-react";
 import { Toaster } from "sonner";
 import { get, getSession, logout } from "./api.js";
 import AuthScreen from "./components/AuthScreen.jsx";
+import VerifyEmailView from "./views/VerifyEmailView.jsx";
+import { isVerifyEmailLocation } from "./authVerification.js";
 import CommandPalette from "./components/CommandPalette.jsx";
 import NotificationsDrawer from "./components/NotificationsDrawer.jsx";
 import Sidebar from "./components/shell/Sidebar.jsx";
@@ -19,6 +21,7 @@ import { useTheme } from "./theme/theme.js";
 const CatalogView = lazy(() => import("./views/CatalogView.jsx"));
 const ClientsView = lazy(() => import("./views/ClientsView.jsx"));
 const DashboardView = lazy(() => import("./views/DashboardView.jsx"));
+const KnowledgeView = lazy(() => import("./views/KnowledgeView.jsx"));
 const InboxView = lazy(() => import("./views/InboxView.jsx"));
 const PipelineView = lazy(() => import("./views/PipelineView.jsx"));
 const PricingView = lazy(() => import("./views/PricingView.jsx"));
@@ -46,6 +49,9 @@ export default function App() {
   const [activeExecution, setActiveExecution] = useState(null);
   const [recentExecution, setRecentExecution] = useState(null);
   const [user, setUser] = useState(null);
+  const [isVerifyRoute, setIsVerifyRoute] = useState(
+    () => typeof window !== "undefined" && isVerifyEmailLocation({ pathname: window.location.pathname, hash: window.location.hash }),
+  );
   const [loadingWorkspace, setLoadingWorkspace] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [workspaceError, setWorkspaceError] = useState("");
@@ -72,8 +78,12 @@ export default function App() {
     if (showLoading) setRefreshing(true);
     setWorkspaceError("");
     try {
+      // Critical first: identity unblocks the shell immediately so the user
+      // sees the app even while a cold backend still serves the rest.
+      const identity = await get("/api/auth/me");
+      setUser(identity);
+      setLoadingWorkspace(false);
       const [
-        identity,
         nextAnalytics,
         nextProposals,
         nextQueue,
@@ -82,7 +92,6 @@ export default function App() {
         nextBriefs,
         nextExecutions,
       ] = await Promise.all([
-        get("/api/auth/me"),
         get("/api/analytics"),
         get("/api/proposals"),
         get("/api/proposals/queue"),
@@ -142,7 +151,28 @@ export default function App() {
     return () => window.removeEventListener("cotizaia:session-expired", handleExpired);
   }, [resetSession]);
 
-  // 1-8 jump between views; Ctrl/Cmd+K opens the command palette.
+  // Public email-verification route (#/verify-email?token=...): reachable
+  // without a session, so it is handled before the auth gate.
+  useEffect(() => {
+    const syncRoute = () =>
+      setIsVerifyRoute(isVerifyEmailLocation({ pathname: window.location.pathname, hash: window.location.hash }));
+    window.addEventListener("hashchange", syncRoute);
+    window.addEventListener("popstate", syncRoute);
+    return () => {
+      window.removeEventListener("hashchange", syncRoute);
+      window.removeEventListener("popstate", syncRoute);
+    };
+  }, []);
+
+  const goToLogin = useCallback(() => {
+    setIsVerifyRoute(false);
+    if (window.location.pathname === "/verify-email") {
+      window.history.replaceState(null, "", "/");
+    }
+    if (window.location.hash !== "#/") window.location.hash = "#/";
+  }, []);
+
+  // 1-9 jump between views; Ctrl/Cmd+K opens the command palette.
   useEffect(() => {
     function handleShortcut(event) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
@@ -218,9 +248,11 @@ export default function App() {
     </main>
   );
 
-  if (checkingSession || (authenticated && loadingWorkspace)) {
+  if (checkingSession) {
     return <>{loadingScreen}{toaster}</>;
   }
+
+  if (isVerifyRoute) return <>{<VerifyEmailView onGoToLogin={goToLogin} />}{toaster}</>;
 
   if (!authenticated) return <>{<AuthScreen onAuthenticated={handleAuthenticated} theme={theme} onToggleTheme={toggleTheme} />}{toaster}</>;
 
@@ -272,6 +304,7 @@ export default function App() {
               {activeView === "clients" && <ClientsView clients={clients} onClientsChange={setClients} onRefresh={() => loadWorkspace()} />}
               {activeView === "catalog" && <CatalogView />}
               {activeView === "rates" && <RatesView />}
+              {activeView === "knowledge" && <KnowledgeView />}
               </Suspense>
             </motion.div>
           </AnimatePresence>
