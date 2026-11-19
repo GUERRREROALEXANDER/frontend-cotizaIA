@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { Toaster } from "sonner";
@@ -17,15 +17,16 @@ import { useNotifications } from "./hooks/useNotifications.js";
 import { reducedFade, viewTransition } from "./motion/presets.js";
 import { viewById, views } from "./navigation.js";
 import { useTheme } from "./theme/theme.js";
-import CatalogView from "./views/CatalogView.jsx";
-import ClientsView from "./views/ClientsView.jsx";
-import DashboardView from "./views/DashboardView.jsx";
-import InboxView from "./views/InboxView.jsx";
-import KnowledgeView from "./views/KnowledgeView.jsx";
-import PipelineView from "./views/PipelineView.jsx";
-import PricingView from "./views/PricingView.jsx";
-import ProposalsView from "./views/ProposalsView.jsx";
-import RatesView from "./views/RatesView.jsx";
+// Each view (and libraries only it uses, such as recharts) downloads on first visit, not with the login screen.
+const CatalogView = lazy(() => import("./views/CatalogView.jsx"));
+const ClientsView = lazy(() => import("./views/ClientsView.jsx"));
+const DashboardView = lazy(() => import("./views/DashboardView.jsx"));
+const KnowledgeView = lazy(() => import("./views/KnowledgeView.jsx"));
+const InboxView = lazy(() => import("./views/InboxView.jsx"));
+const PipelineView = lazy(() => import("./views/PipelineView.jsx"));
+const PricingView = lazy(() => import("./views/PricingView.jsx"));
+const ProposalsView = lazy(() => import("./views/ProposalsView.jsx"));
+const RatesView = lazy(() => import("./views/RatesView.jsx"));
 
 export default function App() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -294,7 +295,8 @@ export default function App() {
 
           <AnimatePresence mode="wait" initial={false}>
             <motion.div key={activeView} {...transition}>
-              {activeView === "dashboard" && <DashboardView analytics={analytics} proposals={proposals} clients={clients} queue={queue} briefs={briefs} activeExecution={activeExecution} recentExecution={recentExecution} onNavigate={setActiveView} onOpenProposal={openProposal} onOpenBrief={openBrief} />}
+              <Suspense fallback={<p className="py-16 text-center text-xs text-muted">Cargando…</p>}>
+              {activeView === "dashboard" && <DashboardView analytics={analytics} proposals={proposals} clients={clients} queue={queue} briefs={briefs} activeExecution={activeExecution} recentExecution={recentExecution} onNavigate={setActiveView} onOpenProposal={openProposal} onOpenBrief={openBrief} user={user} />}
               {activeView === "pipeline" && <PipelineView activeExecution={activeExecution} recentExecution={recentExecution} onExecutionChange={handleExecution} isProcessing={isProcessing} onNavigate={setActiveView} />}
               {activeView === "inbox" && <InboxView clients={clients} briefs={briefs} selectedBrief={selectedBrief} onBriefCreated={handleBriefCreated} onBriefSelected={setSelectedBrief} onQuotation={handleQuotation} onExecution={handleExecution} isProcessing={isProcessing} onProcessing={setIsProcessing} onClientCreated={handleClientCreated} onNavigate={setActiveView} />}
               {activeView === "pricing" && <PricingView pricingModel={pricingModel} proposals={proposals} onPricingModel={setPricingModel} onRefresh={() => loadWorkspace()} />}
@@ -303,6 +305,7 @@ export default function App() {
               {activeView === "catalog" && <CatalogView />}
               {activeView === "rates" && <RatesView />}
               {activeView === "knowledge" && <KnowledgeView />}
+              </Suspense>
             </motion.div>
           </AnimatePresence>
         </main>
