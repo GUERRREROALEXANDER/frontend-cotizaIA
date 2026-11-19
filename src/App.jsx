@@ -4,6 +4,8 @@ import { Sparkles } from "lucide-react";
 import { Toaster } from "sonner";
 import { get, getSession, logout } from "./api.js";
 import AuthScreen from "./components/AuthScreen.jsx";
+import VerifyEmailView from "./views/VerifyEmailView.jsx";
+import { isVerifyEmailLocation } from "./authVerification.js";
 import CommandPalette from "./components/CommandPalette.jsx";
 import NotificationsDrawer from "./components/NotificationsDrawer.jsx";
 import Sidebar from "./components/shell/Sidebar.jsx";
@@ -46,6 +48,9 @@ export default function App() {
   const [activeExecution, setActiveExecution] = useState(null);
   const [recentExecution, setRecentExecution] = useState(null);
   const [user, setUser] = useState(null);
+  const [isVerifyRoute, setIsVerifyRoute] = useState(
+    () => typeof window !== "undefined" && isVerifyEmailLocation({ pathname: window.location.pathname, hash: window.location.hash }),
+  );
   const [loadingWorkspace, setLoadingWorkspace] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [workspaceError, setWorkspaceError] = useState("");
@@ -145,6 +150,27 @@ export default function App() {
     return () => window.removeEventListener("cotizaia:session-expired", handleExpired);
   }, [resetSession]);
 
+  // Public email-verification route (#/verify-email?token=...): reachable
+  // without a session, so it is handled before the auth gate.
+  useEffect(() => {
+    const syncRoute = () =>
+      setIsVerifyRoute(isVerifyEmailLocation({ pathname: window.location.pathname, hash: window.location.hash }));
+    window.addEventListener("hashchange", syncRoute);
+    window.addEventListener("popstate", syncRoute);
+    return () => {
+      window.removeEventListener("hashchange", syncRoute);
+      window.removeEventListener("popstate", syncRoute);
+    };
+  }, []);
+
+  const goToLogin = useCallback(() => {
+    setIsVerifyRoute(false);
+    if (window.location.pathname === "/verify-email") {
+      window.history.replaceState(null, "", "/");
+    }
+    if (window.location.hash !== "#/") window.location.hash = "#/";
+  }, []);
+
   // 1-9 jump between views; Ctrl/Cmd+K opens the command palette.
   useEffect(() => {
     function handleShortcut(event) {
@@ -224,6 +250,8 @@ export default function App() {
   if (checkingSession) {
     return <>{loadingScreen}{toaster}</>;
   }
+
+  if (isVerifyRoute) return <>{<VerifyEmailView onGoToLogin={goToLogin} />}{toaster}</>;
 
   if (!authenticated) return <>{<AuthScreen onAuthenticated={handleAuthenticated} theme={theme} onToggleTheme={toggleTheme} />}{toaster}</>;
 
