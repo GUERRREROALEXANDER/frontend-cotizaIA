@@ -2,14 +2,14 @@ import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bell, CheckCircle2, Eye, FileText, Loader2, Send, X, XCircle } from "lucide-react";
 import { duration, ease } from "../motion/presets.js";
-import { Button, EmptyState, IconButton, formatRelative, statusLabels } from "./ui.jsx";
+import { Button, EmptyState, IconButton, formatRelative, statusLabel } from "./ui.jsx";
 
 // Shared copy for the drawer rows and the sonner toasts.
 export function notificationText(item) {
   const data = item && typeof item.data === "object" && item.data !== null ? item.data : {};
   if (item && item.eventType === "PROPOSAL_STATUS_CHANGED") {
-    const toLabel = statusLabels[data.to] || String(data.to || "").replaceAll("_", " ").toLowerCase();
-    const fromLabel = statusLabels[data.from] || String(data.from || "").replaceAll("_", " ").toLowerCase();
+    const toLabel = statusLabel(data.to);
+    const fromLabel = statusLabel(data.from);
     return {
       title: `${data.clientName || "Propuesta"}: ${toLabel}`,
       description: `De ${fromLabel} a ${toLabel}`,
