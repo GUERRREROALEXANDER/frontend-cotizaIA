@@ -1,6 +1,6 @@
 # Backend API used by the frontend
 
-All calls go through `src/api.js` (`get`, `post`, `put`, `del`, `upload`). Session in HttpOnly cookies + CSRF double-submit header `X-XSRF-TOKEN`; nothing in localStorage. Errors come back as `{ "error": "..." }` (400/404/409/413/422/503) or `{ "error": "Validation failed", "fields": {...} }`.
+All calls go through `src/api.js` (`get`, `post`, `put`, `patch`, `del`, `upload`). Session in HttpOnly cookies + CSRF double-submit header `X-XSRF-TOKEN`; nothing in localStorage. Errors come back as `{ "error": "..." }` (400/404/409/413/422/503) or `{ "error": "Validation failed", "fields": {...} }`.
 
 ## Auth
 The JWT never appears in a response body: login, register and refresh set the `HttpOnly` session cookies and answer
