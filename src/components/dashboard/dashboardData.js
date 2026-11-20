@@ -1,5 +1,5 @@
 import { FileText, Globe, Inbox, MessageCircle } from "lucide-react";
-import { statusLabels } from "../ui.jsx";
+import { statusLabels } from "../../statusLabels.js";
 
 
 const DAY_MS = 86400000;

@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { CountUp, MaskedText } from "../motion/Motion.jsx";
 import { duration, ease } from "../motion/presets.js";
 import { fieldClass } from "./fields.jsx";
+import { statusLabel, statusLabels } from "../statusLabels.js";
 
 export function formatCurrency(value) {
   return new Intl.NumberFormat("es-CO", {
@@ -215,27 +216,8 @@ const statusTone = {
   FAILED: "closed",
 };
 
-export const statusLabels = {
-  ACCEPTED: "Aceptada",
-  APPROVED: "Aprobada",
-  SENT: "Enviada",
-  PROCESSING: "En proceso",
-  COMPLETED: "Completada",
-  REJECTED: "Rechazada",
-  FAILED: "Fallida",
-  IN_REVIEW: "Por revisar",
-  PENDING: "Pendiente",
-  DRAFT: "Borrador",
-  RECEIVED: "Recibida",
-  ANALYZING: "En análisis",
-  QUOTED: "Cotizada",
-  NEGOTIATING: "En negociación",
-  CONTRACT_ISSUED: "Contrato emitido",
-  EXPIRED: "Vencida",
-  RUNNING: "En ejecución",
-  SUCCEEDED: "Completada",
-  HALTED: "En pausa",
-};
+// Kept as a re-export so existing imports from ui.jsx keep working.
+export { statusLabel, statusLabels };
 
 const toneClass = {
   neutral: "bg-surface-2 text-muted border-transparent",
