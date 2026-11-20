@@ -3,26 +3,13 @@ import { Badge, formatCurrency } from "../../components/ui.jsx";
 import { CountUp } from "../../motion/Motion.jsx";
 import { duration, ease, staggerDelay } from "../../motion/presets.js";
 import { extraLabel } from "./extras.js";
+import { citationLabel } from "./citations.js";
 
 const sourceBadges = {
   MEMORY: { label: "Memoria", tone: "accent" },
   CATALOG: { label: "Catálogo", tone: "info" },
   DEFAULT: { label: "Por defecto", tone: "neutral" },
 };
-
-function formatHours(value) {
-  const hours = Number(value);
-  if (!Number.isFinite(hours)) return "—";
-  return hours.toLocaleString("es-CO", { maximumFractionDigits: 1 });
-}
-
-function citationLabel(citation) {
-  const parts = [citation.documentName];
-  if (citation.page != null) parts.push(`p. ${citation.page}`);
-  if (citation.hours != null) parts.push(`${formatHours(citation.hours)} h`);
-  if (citation.similarity != null) parts.push(`sim ${Number(citation.similarity).toFixed(2)}`);
-  return parts.filter(Boolean).join(" · ");
-}
 
 export function ProposalItemsTable({ items, extras, subtotal, total }) {
   if (!items?.length) {
