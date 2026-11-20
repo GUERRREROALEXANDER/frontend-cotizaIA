@@ -48,8 +48,12 @@ identity metadata only (see [SECURITY-SESSION.md](SECURITY-SESSION.md)).
 ## Proposals
 - `GET /api/proposals`, `GET /api/proposals/queue` → `[{id, briefId, status, subtotal, total, pricingModel, createdAt, approvedAt}]`
 - `GET /api/proposals/{id}` → detail with `allowedTransitions`, `items`, `extras`, `schedule`, `statusHistory`, `documents`, `deposit`
-- `PUT /api/proposals/{id}/items/{itemId}` `{hours}`
-- `POST /api/proposals/{id}/approve | send | negotiate | reject | expire | accept`
+- `GET /api/proposals?status=IN_REVIEW` filters the list by status
+- `PUT /api/proposals/{id}/items/{itemId}` `{hours}` (recorded as a command, so it can be undone)
+- `POST /api/proposals/{id}/extras` `{type: URGENCY|DISCOUNT|EXTENDED_WARRANTY}`, `DELETE /api/proposals/{id}/extras/{extraId}`; only while `IN_REVIEW` and not approved, otherwise 409
+- `POST /api/proposals/{id}/undo` reverts the latest hours or extras edit; `GET /api/proposals/{id}/commands` → `[{type, description, executedAt, undoneAt}]`
+- `POST /api/proposals/{id}/approve | send | viewed | negotiate | revise | reject | expire | accept`; an illegal transition answers 422
+- `GET /api/proposals/{id}/readiness` (Specification checks before approving), `GET /api/proposals/{id}/draft/stats`, `GET /api/proposals/{id}/draft/markdown` (`text/markdown`)
 - `GET /api/proposals/{id}/documents`, `GET /api/proposals/{id}/documents/{PROPOSAL|CONTRACT|SCHEDULE}` (PDF)
 
 Statuses: `RECEIVED, ANALYZING, QUOTED, IN_REVIEW, SENT, NEGOTIATING, ACCEPTED, CONTRACT_ISSUED, REJECTED, EXPIRED`.
