@@ -4,9 +4,9 @@ Centro de operaciones para agencias, construido con React, Vite, Tailwind CSS, F
 
 ## Lenguaje visual
 
-La interfaz usa una dirección editorial clara inspirada en la ficha “Apple iPhone Duo” de Refero Styles: tipografía de sistema, superficies blancas, controles redondeados y azul para las acciones principales. Los acentos cálidos conservan su función para importes y datos comerciales; la ilustración de la ciudad de agentes es original de CotizaIA.
+La paleta sale de `src/theme/tokens.css`: verde bosque (`#163300`) para la marca y lima (`#9fe870`) para las acciones principales sobre un fondo claro (`#f4f6f1`), con tema oscuro (`html[data-theme="dark"]`) que invierte esos papeles. Los estados de las propuestas tienen colores sólidos propios. Ningún componente usa colores sueltos: todos leen los tokens.
 
-El mapa isométrico admite un leve seguimiento del puntero en escritorio y anima sus rutas de agentes. El monitor del pipeline revela el avance entre handlers y cada nuevo registro de la transacción. Los efectos respetan la preferencia del sistema por movimiento reducido.
+La pantalla del agente muestra una escena 3D original (Three.js, `src/components/agent3d/`) con un robot y los siete pasos del pipeline; Three.js se descarga solo al abrir esa pantalla, y mientras llega se muestra una versión sin 3D. El monitor del pipeline revela el avance entre handlers. Los efectos respetan la preferencia del sistema por movimiento reducido.
 
 ## Requisitos
 
