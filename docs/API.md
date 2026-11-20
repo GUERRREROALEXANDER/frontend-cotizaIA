@@ -39,7 +39,8 @@ identity metadata only (see [SECURITY-SESSION.md](SECURITY-SESSION.md)).
 - `GET /api/briefs/{id}/attachment` → the original PDF (only PDF briefs)
 - `POST /api/briefs/{id}/process` → `QuotationResponse {briefId, proposalId, proposalStatus, executionId, executionStatus, halted, subtotal, total, pricingModel, documents, questions}`
 - `POST /api/briefs/{id}/questions/{questionId}/answer` `{answer ≤ 2000}`
-- `GET /api/briefs` → lists briefs, newest first.
+- `GET /api/briefs?limit=35` (1..100) → lists briefs, newest first.
+- `GET /api/briefs/{id}/progress` → `{running, steps: [{name, status: SUCCEEDED|FAILED}]}`; the inbox polls it while the agent runs.
 
 ## Executions
 - `GET /api/executions?briefId=` , `GET /api/executions/{id}` → `{id, briefId, status, startedAt, finishedAt, errorMessage, steps: [{id, stepOrder, handler, inputSummary, outputSummary, durationMs, ...}]}`
