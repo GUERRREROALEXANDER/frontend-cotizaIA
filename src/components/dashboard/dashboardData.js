@@ -1,5 +1,5 @@
 import { FileText, Globe, Inbox, MessageCircle } from "lucide-react";
-import { statusLabels } from "../../statusLabels.js";
+import { statusLabel } from "../../statusLabels.js";
 
 
 const DAY_MS = 86400000;
@@ -21,7 +21,7 @@ export function buildStatusSeries(proposalsByStatus) {
   return Object.entries(proposalsByStatus || {})
     .map(([status, count]) => ({
       status,
-      label: statusLabels[status] || status.replaceAll("_", " ").toLowerCase(),
+      label: statusLabel(status),
       count: Number(count) || 0,
     }))
     .filter((entry) => entry.count > 0)
