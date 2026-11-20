@@ -20,7 +20,7 @@ function NavList({ activeView, onNavigate, collapsed, counts, layoutGroup }) {
                     type="button"
                     onClick={() => onNavigate(id)}
                     aria-current={active ? "page" : undefined}
-                    title={collapsed ? `${label} (${shortcut})` : undefined}
+                    title={collapsed ? (shortcut ? `${label} (${shortcut})` : label) : undefined}
                     className={`group relative flex h-11 w-full items-center gap-3 rounded-full px-4 text-[15px] font-medium transition-colors duration-200 ${active ? "text-accent-fg" : "text-muted hover:bg-surface-2 hover:text-fg"} ${collapsed ? "justify-center px-0" : ""}`}
                   >
                     {active && (
@@ -35,7 +35,7 @@ function NavList({ activeView, onNavigate, collapsed, counts, layoutGroup }) {
                     {!collapsed && count > 0 && (
                       <span className={`relative grid min-w-6 place-items-center rounded-full px-1.5 text-xs font-semibold ${active ? "bg-ink text-ink-fg" : "bg-accent-soft text-brand"}`}>{count}</span>
                     )}
-                    {!collapsed && !count && (
+                    {!collapsed && !count && shortcut && (
                       <kbd className="relative hidden font-mono text-[10px] text-faint opacity-0 transition-opacity group-hover:opacity-100 lg:inline">{shortcut}</kbd>
                     )}
                   </button>

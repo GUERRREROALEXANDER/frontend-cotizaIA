@@ -27,6 +27,7 @@ const PipelineView = lazy(() => import("./views/PipelineView.jsx"));
 const PricingView = lazy(() => import("./views/PricingView.jsx"));
 const ProposalsView = lazy(() => import("./views/ProposalsView.jsx"));
 const RatesView = lazy(() => import("./views/RatesView.jsx"));
+const WhatsappView = lazy(() => import("./views/WhatsappView.jsx"));
 
 export default function App() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -305,6 +306,7 @@ export default function App() {
               {activeView === "catalog" && <CatalogView />}
               {activeView === "rates" && <RatesView />}
               {activeView === "knowledge" && <KnowledgeView />}
+              {activeView === "whatsapp" && <WhatsappView />}
               </Suspense>
             </motion.div>
           </AnimatePresence>

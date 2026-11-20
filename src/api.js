@@ -49,8 +49,10 @@ async function csrfToken() {
   return readCookie("XSRF-TOKEN");
 }
 
+// Login, refresh and friends answer 401 on purpose, so they never trigger a refresh. Account screens under
+// /api/auth/me/ (WhatsApp, ...) are ordinary calls: an expired cookie there is refreshed like anywhere else.
 function isAuthPath(path) {
-  return path.startsWith("/api/auth/");
+  return path.startsWith("/api/auth/") && !path.startsWith("/api/auth/me/");
 }
 
 let refreshPending = null;
@@ -189,6 +191,10 @@ export function post(path, body, { timeoutMs } = {}) {
 
 export function put(path, body) {
   return request(path, { method: "PUT", body: JSON.stringify(body) });
+}
+
+export function patch(path, body) {
+  return request(path, { method: "PATCH", body: JSON.stringify(body) });
 }
 
 export function del(path) {
