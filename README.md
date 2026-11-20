@@ -63,6 +63,23 @@ npm run preview
 
 El directorio de distribución es `dist/`. En despliegues independientes, configura `VITE_API_URL` con la URL pública del backend y permite el origen del frontend en `app.cors.allowed-origins`.
 
+## Pantallas
+
+Definidas en `src/navigation.js`; la ruta vive en el hash (`#/propuestas`) y las teclas 1 a 9 saltan a cada una.
+
+| Tecla | Pantalla | Para qué sirve |
+| --- | --- | --- |
+| 1 | Resumen | Indicadores, propuestas que piden atención y últimos briefs |
+| 2 | Bandeja | Crear briefs (WhatsApp, correo, formulario o PDF) y procesarlos |
+| 3 | Agente | Ver los pasos del agente de cada ejecución |
+| 4 | Propuestas | Revisar ítems, ajustar horas, extras, deshacer y cambiar de estado |
+| 5 | Precios | Estrategia de precio de la agencia (fija, por hora o por fases) |
+| 6 | Clientes | Alta y edición de clientes |
+| 7 | Catálogo | Servicios y tipos de requisito con sus horas base |
+| 8 | Tarifas | Roles y su tarifa por hora en COP |
+| 9 | Conocimiento | PDF de propuestas pasadas que alimentan la memoria del agente |
+| — | WhatsApp | Vincular el número del dueño y recibir avisos de propuestas |
+
 ## Integración y alcance de la API
 
 - Inicio de sesión y registro: `/api/auth/login` y `/api/auth/register`.
