@@ -2,29 +2,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { get } from "../api.js";
 import { notificationText } from "../components/NotificationsDrawer.jsx";
+import { dashboardNotifications, parseLastSeen } from "../notificationRows.js";
 
 const storageKey = "cotizaia.notifications.lastSeen";
 
 function readLastSeen() {
   try {
-    const raw = window.localStorage.getItem(storageKey);
-    if (raw === null) return null;
-    const parsed = Number(raw);
-    return Number.isNaN(parsed) ? null : parsed;
+    return parseLastSeen(window.localStorage.getItem(storageKey));
   } catch {
     return null;
   }
-}
-
-function parseRow(row) {
-  let data = {};
-  try {
-    const parsed = JSON.parse(row.payload);
-    if (parsed !== null && typeof parsed === "object") data = parsed;
-  } catch {
-    data = {};
-  }
-  return { ...row, data };
 }
 
 // Polls dashboard notifications, keeps the previous list on errors.
@@ -41,10 +28,7 @@ export function useNotifications({ enabled } = {}) {
     } catch {
       return;
     }
-    const items = (Array.isArray(rows) ? rows : [])
-      .filter((row) => row && row.channel === "DASHBOARD")
-      .map(parseRow)
-      .sort((a, b) => b.id - a.id);
+    const items = dashboardNotifications(rows);
     if (!firstLoad.current) {
       const fresh = items.filter((item) => !knownIds.current.has(item.id)).reverse();
       for (const item of fresh) {
