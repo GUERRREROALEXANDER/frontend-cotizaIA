@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Check, Clock3, Coins, Layers3, Save } from "lucide-react";
 import { get, put } from "../api.js";
 import { toast } from "sonner";
-import { PageHeader, Panel, SectionHeading, Button, InkPanel, statusLabels, formatCurrency } from "../components/ui.jsx";
+import { PageHeader, Panel, SectionHeading, Button, InkPanel, InkStatusBadge, statusLabels, formatCurrency } from "../components/ui.jsx";
 import { ComboSelect } from "../components/fields.jsx";
 import { CountUp } from "../motion/Motion.jsx";
 import { duration, ease, reducedFade, staggerDelay, viewTransition } from "../motion/presets.js";
@@ -217,7 +217,7 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
               <InkPanel className="flex flex-wrap items-center justify-between gap-4 p-5">
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="tabular text-sm font-medium text-ink-text/70">Propuesta #{proposal.id}</span>
-                  <InkStatus status={proposal.status} />
+                  <InkStatusBadge status={proposal.status} />
                 </div>
                 <p className="display tabular text-3xl text-ink-fg">
                   <CountUp value={proposal.total} format={formatCurrency} />
@@ -277,18 +277,5 @@ export default function PricingView({ pricingModel, proposals, onPricingModel, o
         </Panel>
       </div>
     </div>
-  );
-}
-
-// On the forest panel the tone-based badge loses its contrast, so the status
-// reads as a lime chip instead.
-function InkStatus({ status }) {
-  const normalized = String(status || "PENDING").toUpperCase();
-  const label = statusLabels[normalized] || normalized.replaceAll("_", " ").toLowerCase();
-  return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-ink-fg/30 px-3 py-1.5 text-xs font-semibold text-ink-fg">
-      <span className="h-1.5 w-1.5 rounded-full bg-ink-fg" aria-hidden />
-      {label}
-    </span>
   );
 }
