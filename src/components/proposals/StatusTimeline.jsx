@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 import { Eye } from "lucide-react";
-import { formatDateTime, statusLabels } from "../../components/ui.jsx";
+import { formatDateTime, statusLabel } from "../../components/ui.jsx";
 import { duration, ease, staggerDelay } from "../../motion/presets.js";
 
-const label = (status) =>
-  statusLabels[status] || (status === "CREADA" ? "Creada" : String(status || "").replaceAll("_", " ").toLowerCase());
+// CREADA is the first history entry the backend writes; it is not a proposal status.
+const label = (status) => (status === "CREADA" ? "Creada" : statusLabel(status));
 
 // `viewedAt` is a stamp the status history does not carry: the client opening the
 // proposal is not a transition, so it is rendered as its own entry above the history.
