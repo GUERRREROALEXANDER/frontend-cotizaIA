@@ -4,6 +4,7 @@ import { Check, ChevronDown, Search } from "lucide-react";
 import { toast } from "sonner";
 import { COUNTER_VISIBLE_FROM, COUNTER_WARNING_FROM, LIMITS } from "../limits.js";
 import { duration, ease } from "../motion/presets.js";
+import { initialsOfLabel, normalizeOptionText } from "./optionText.js";
 
 // Wise input: 10px radius, pebble hairline, forest border on focus.
 export const fieldClass =
@@ -138,23 +139,6 @@ export function Select({ label, hint, error, id, className = "", children, ...pr
       </select>
     </Field>
   );
-}
-
-function normalizeOptionText(text) {
-  return String(text ?? "")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
-}
-
-function initialsOfLabel(text) {
-  let out = "";
-  for (const part of String(text ?? "").trim().split(/\s+/)) {
-    const char = [...part].find((item) => /[\p{L}\p{N}]/u.test(item));
-    if (char) out += char;
-    if (out.length >= 2) break;
-  }
-  return (out || "?").toUpperCase();
 }
 
 // Custom combobox that replaces the native select. Options carry value,
