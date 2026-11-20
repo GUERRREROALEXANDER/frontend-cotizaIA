@@ -3,9 +3,16 @@
 All calls go through `src/api.js` (`get`, `post`, `put`, `del`, `upload`). Session in HttpOnly cookies + CSRF double-submit header `X-XSRF-TOKEN`; nothing in localStorage. Errors come back as `{ "error": "..." }` (400/404/409/413/422/503) or `{ "error": "Validation failed", "fields": {...} }`.
 
 ## Auth
-- `POST /api/auth/register` `{agencyName≤255, ownerFullName, email, password 8..100}` → `AuthResponse {token, tokenType, expiresAt, agencyId, userId, role}`
-- `POST /api/auth/login` `{email, password}` → `AuthResponse`
-- `GET /api/auth/me`
+The JWT never appears in a response body: login, register and refresh set the `HttpOnly` session cookies and answer
+identity metadata only (see [SECURITY-SESSION.md](SECURITY-SESSION.md)).
+- `GET /api/auth/csrf` → 204 and the readable `XSRF-TOKEN` cookie that writes echo in `X-XSRF-TOKEN`
+- `POST /api/auth/register` `{agencyName≤255, ownerFullName, email, password 8..100}` → `AuthResponse {expiresAt, agencyId, userId, role, emailVerificationRequired}`
+- `POST /api/auth/login` `{email, password}` → `AuthResponse`; 403 `{"error":"Email not verified"}` while the email is unverified
+- `POST /api/auth/refresh` → `AuthResponse`, rotates both cookies (`src/api.js` calls it once on a 401)
+- `POST /api/auth/logout` → 204, clears the cookies
+- `POST /api/auth/verify-email` `{token}` → 204; 400 `{"error":"Invalid or expired token"}`
+- `POST /api/auth/resend-verification` `{email}` → 204 whether or not the account exists
+- `GET /api/auth/me` → `{userId, agencyId, role, email, fullName, agencyName}`
 
 ## Workspace
 - `GET /api/analytics` → `{averageResponseTimeMinutes, acceptanceRate, proposalsByStatus: {STATUS: count}, sentCount, acceptedCount, totalProposals}`
