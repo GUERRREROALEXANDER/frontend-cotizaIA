@@ -1,4 +1,5 @@
-import { Suspense, lazy, useCallback, useEffect, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
+import { REFRESH_INTERVAL_MS, REFRESH_VIEWS, createRefreshGate } from "./liveRefresh.js";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { Toaster } from "sonner";
@@ -75,7 +76,9 @@ export default function App() {
     setRefreshing(false);
   }, []);
 
-  const loadWorkspace = useCallback(async (showLoading = false) => {
+  // `quiet`: a background refresh keeps the screen as it is when it fails (a cold backend is not news);
+  // only a 401 still ends the session.
+  const loadWorkspace = useCallback(async (showLoading = false, { quiet = false } = {}) => {
     if (showLoading) setRefreshing(true);
     setWorkspaceError("");
     try {
@@ -113,7 +116,7 @@ export default function App() {
     } catch (error) {
       if (error.status === 401) {
         resetSession();
-      } else {
+      } else if (!quiet) {
         setWorkspaceError(error.message);
       }
     } finally {
@@ -144,6 +147,34 @@ export default function App() {
   useEffect(() => {
     if (authenticated) void loadWorkspace();
   }, [authenticated, loadWorkspace]);
+
+  // Proposals also arrive from outside this tab (a quote made by WhatsApp, the Gmail intake): re-read the
+  // workspace when the tab comes back into view, every 30 s while it is visible, and on entering a view that
+  // lists proposals. The gate keeps those triggers from stacking up into several requests.
+  const [refreshGate] = useState(() => createRefreshGate(() => loadWorkspace(false, { quiet: true })));
+  const requestRefresh = useCallback(() => {
+    if (document.visibilityState === "visible") refreshGate.request().catch(() => {});
+  }, [refreshGate]);
+
+  useEffect(() => {
+    if (!authenticated) return undefined;
+    const timer = setInterval(requestRefresh, REFRESH_INTERVAL_MS);
+    document.addEventListener("visibilitychange", requestRefresh);
+    window.addEventListener("focus", requestRefresh);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", requestRefresh);
+      window.removeEventListener("focus", requestRefresh);
+    };
+  }, [authenticated, requestRefresh]);
+
+  // Only a change of view: the first render already has the login load on its way.
+  const previousView = useRef(activeView);
+  useEffect(() => {
+    const changed = previousView.current !== activeView;
+    previousView.current = activeView;
+    if (changed && authenticated && REFRESH_VIEWS.has(activeView)) requestRefresh();
+  }, [authenticated, activeView, requestRefresh]);
 
   // A refused refresh means the cookies are gone: back to the auth screen.
   useEffect(() => {
