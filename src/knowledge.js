@@ -1,7 +1,7 @@
 import { PDF_LIMITS } from "./limits.js";
 
-// Límites del archivo de conocimiento, con el mismo estilo que limits.js.
-// El backend solo acepta PDF (KnowledgeController -> reader validation).
+// Knowledge file limits, following the same style as limits.js.
+// The backend only accepts PDF (KnowledgeController -> reader validation).
 export const KNOWLEDGE_FILE = Object.freeze({
   maxBytes: PDF_LIMITS.maxBytes,
   accept: ".pdf,application/pdf",
@@ -14,7 +14,7 @@ export function isPdfFile(file) {
   return type === "application/pdf" || name.endsWith(".pdf");
 }
 
-// Devuelve "" cuando el archivo es válido, o el mensaje en español si no.
+// Returns "" when the file is valid, or the message in Spanish otherwise.
 export function validateKnowledgeFile(file) {
   if (!file) return "Selecciona un archivo PDF antes de subir.";
   if (!isPdfFile(file)) return "Solo se aceptan archivos PDF.";
