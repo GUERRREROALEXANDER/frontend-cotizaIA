@@ -1,5 +1,6 @@
 import { friendlyMessage } from "./friendlyError.js";
-const apiBase = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+// import.meta.env only exists under Vite; node tests import this module without it.
+const apiBase = (import.meta.env?.VITE_API_URL || "").replace(/\/$/, "");
 
 // The browser never holds a credential: the backend sets HttpOnly cookies and
 // every request travels same-origin. Writes must echo the readable XSRF-TOKEN
