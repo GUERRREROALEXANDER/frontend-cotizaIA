@@ -4,18 +4,9 @@ import { FileText, Upload, X } from "lucide-react";
 import { PDF_LIMITS } from "../../limits.js";
 import { duration, ease } from "../../motion/presets.js";
 import { IconButton } from "../ui.jsx";
+import { formatMb, isPdfFile } from "./pdfFile.js";
 
 const maxMb = Math.round(PDF_LIMITS.maxBytes / (1024 * 1024));
-
-function formatMb(bytes) {
-  return `${(Number(bytes || 0) / (1024 * 1024)).toFixed(2)} MB`;
-}
-
-function isPdfFile(file) {
-  if (!file) return false;
-  if (file.type) return file.type === "application/pdf";
-  return String(file.name || "").toLowerCase().endsWith(".pdf");
-}
 
 // Drag and drop zone for PDF briefs. Validation runs on the client so
 // oversized or non PDF files never reach the upload endpoint.
