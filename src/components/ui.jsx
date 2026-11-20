@@ -252,6 +252,17 @@ export function StatusBadge({ status, className = "" }) {
   );
 }
 
+// On the forest (ink) panels the tone-based StatusBadge loses its contrast, so the
+// status reads as a lime chip instead.
+export function InkStatusBadge({ status }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-ink-fg/30 px-3 py-1.5 text-xs font-semibold text-ink-fg">
+      <span className="h-1.5 w-1.5 rounded-full bg-ink-fg" aria-hidden />
+      {statusLabel(status || "PENDING")}
+    </span>
+  );
+}
+
 // v1 string classes, now token-based, so untouched call sites keep working.
 export const buttonClass =
   "inline-flex items-center justify-center gap-2 rounded-full border border-brand/70 bg-transparent px-5 h-11 text-[15px] font-medium text-brand transition-colors duration-200 hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-50";

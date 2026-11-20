@@ -14,7 +14,7 @@ import {
   Trash2,
   XCircle,
 } from "lucide-react";
-import { Panel, SectionHeading, Button, EmptyState, InkPanel, Badge, statusLabels } from "../../components/ui.jsx";
+import { Panel, SectionHeading, Button, EmptyState, InkPanel, Badge, InkStatusBadge } from "../../components/ui.jsx";
 import { formatCurrency, formatDate } from "../../components/ui.jsx";
 import { CountUp } from "../../motion/Motion.jsx";
 import { availableActions } from "./proposalActions.js";
@@ -44,19 +44,6 @@ const actionIcons = {
 // border the light secondary variant uses.
 const inkPillClass =
   "inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-ink-fg/40 px-5 text-[15px] font-medium text-ink-fg transition-colors duration-200 hover:bg-ink-fg/10 disabled:cursor-not-allowed disabled:opacity-50";
-
-// On the forest panel the tone-based StatusBadge loses its contrast, so the
-// status reads as a lime chip instead.
-export function InkStatusBadge({ status }) {
-  const normalized = String(status || "PENDING").toUpperCase();
-  const label = statusLabels[normalized] || normalized.replaceAll("_", " ").toLowerCase();
-  return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-ink-fg/30 px-3 py-1.5 text-xs font-semibold text-ink-fg">
-      <span className="h-1.5 w-1.5 rounded-full bg-ink-fg" aria-hidden />
-      {label}
-    </span>
-  );
-}
 
 export function ProposalDetailPanel({
   detail,
