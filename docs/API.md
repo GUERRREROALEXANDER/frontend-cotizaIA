@@ -56,4 +56,10 @@ identity metadata only (see [SECURITY-SESSION.md](SECURITY-SESSION.md)).
 - `GET /api/proposals/{id}/readiness` (Specification checks before approving), `GET /api/proposals/{id}/draft/stats`, `GET /api/proposals/{id}/draft/markdown` (`text/markdown`)
 - `GET /api/proposals/{id}/documents`, `GET /api/proposals/{id}/documents/{PROPOSAL|CONTRACT|SCHEDULE}` (PDF)
 
+## Knowledge (agent memory)
+- `GET /api/knowledge/documents` → `[{documentId, name, kind, items, passages, createdAt}]`
+- `POST /api/knowledge/documents` multipart `file` (past proposal PDF) → `{documentId, name, passages, items: [...], rejectedItems}`; sent with `upload()` for progress
+- `DELETE /api/knowledge/documents/{id}`
+- `GET /api/knowledge/search?q=&type=&k=` (not used by the UI; handy to check what the agent retrieves)
+
 Statuses: `RECEIVED, ANALYZING, QUOTED, IN_REVIEW, SENT, NEGOTIATING, ACCEPTED, CONTRACT_ISSUED, REJECTED, EXPIRED`.
