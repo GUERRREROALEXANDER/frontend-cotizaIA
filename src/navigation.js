@@ -1,4 +1,4 @@
-import { BarChart3, Bot, BookOpen, Brain, Coins, FileText, Inbox, SlidersHorizontal, Users } from "lucide-react";
+import { BarChart3, Bot, BookOpen, Brain, Coins, FileText, Inbox, MessageCircle, SlidersHorizontal, Users } from "lucide-react";
 
 // Every screen of the app. `slug` is the URL hash (#/propuestas) and
 // `shortcut` the single-key jump (1-9) handled in App.
@@ -12,6 +12,8 @@ export const views = [
   { id: "catalog", slug: "catalogo", label: "Catálogo", title: "Catálogo de servicios", icon: BookOpen, group: "Configuración", shortcut: "7" },
   { id: "rates", slug: "tarifas", label: "Tarifas", title: "Roles y tarifas", icon: Coins, group: "Configuración", shortcut: "8" },
   { id: "knowledge", slug: "conocimiento", label: "Conocimiento", title: "Base de conocimiento", icon: Brain, group: "Configuración", shortcut: "9" },
+  // No shortcut: 1-9 are taken.
+  { id: "whatsapp", slug: "whatsapp", label: "WhatsApp", title: "WhatsApp", icon: MessageCircle, group: "Configuración" },
 ];
 
 export const viewById = Object.fromEntries(views.map((view) => [view.id, view]));

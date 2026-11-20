@@ -106,9 +106,9 @@ export default function CommandPalette({
                         >
                           <ViewIcon size={15} aria-hidden className="shrink-0 text-muted" />
                           <span className="flex-1">{view.label}</span>
-                          <kbd className="rounded-md border border-line bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] text-faint">
+                          {view.shortcut && (<kbd className="rounded-md border border-line bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] text-faint">
                             {view.shortcut}
-                          </kbd>
+                          </kbd>)}
                         </Command.Item>
                       );
                     })}
