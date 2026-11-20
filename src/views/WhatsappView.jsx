@@ -6,7 +6,7 @@ import { del, get, patch, post } from "../api.js";
 import { FormPanel } from "../components/settings/FormPanel.jsx";
 import { HoldToConfirm } from "../components/settings/HoldToConfirm.jsx";
 import { LimitedInput } from "../components/fields.jsx";
-import { Badge, Button, PageHeader, Panel, Skeleton, formatDateTime } from "../components/ui.jsx";
+import { Badge, Button, PageHeader, Panel, Skeleton, buttonSizes, buttonVariants, formatDateTime } from "../components/ui.jsx";
 import {
   CODE_LENGTH,
   RESEND_SECONDS,
@@ -28,6 +28,7 @@ export default function WhatsappView() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [changing, setChanging] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -42,8 +43,8 @@ export default function WhatsappView() {
       ]);
       setContact(current);
       setInfo(details);
-    } catch (error) {
-      setLoadError(error.message);
+    } catch {
+      setLoadError("No pudimos cargar tu WhatsApp. Revisa tu conexión e intenta de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -53,13 +54,17 @@ export default function WhatsappView() {
     void load();
   }, []);
 
+  // Disabled while saving: a second click would race the first PATCH and flip the switch back.
   async function toggleNotices() {
+    setSaving(true);
     try {
       const updated = await patch(BASE, { enabled: !contact.enabled });
       setContact(updated);
       toast.success(updated.enabled ? "Avisos activados." : "Avisos pausados.");
-    } catch (error) {
-      toast.error(error.message);
+    } catch {
+      toast.error("No se pudieron cambiar los avisos. Intenta de nuevo.");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -68,8 +73,8 @@ export default function WhatsappView() {
       await del(BASE);
       setContact(null);
       toast.success("Número desvinculado.");
-    } catch (error) {
-      toast.error(error.message);
+    } catch {
+      toast.error("No se pudo desvincular el número. Intenta de nuevo.");
     }
   }
 
@@ -111,7 +116,7 @@ export default function WhatsappView() {
               <CheckCircle2 size={20} aria-hidden />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-fg">{contact.phone}</p>
+              <p className="tabular text-sm font-semibold text-fg">{formatPhone(contact.phone)}</p>
               <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
                 <Badge tone="success">Verificado</Badge>
                 {contact.verifiedAt && <span>{formatDateTime(contact.verifiedAt)}</span>}
@@ -140,7 +145,7 @@ export default function WhatsappView() {
                     href={link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 inline-flex h-11 items-center gap-2 rounded-full border border-transparent bg-accent px-5 text-[15px] font-medium text-accent-fg transition-colors duration-200 hover:bg-accent-hover"
+                    className={`mt-4 inline-flex items-center rounded-full border font-medium transition-colors duration-200 ease-out ${buttonVariants.primary} ${buttonSizes.md}`}
                   >
                     <Send size={16} aria-hidden /> Abrir el chat
                   </a>
@@ -159,7 +164,9 @@ export default function WhatsappView() {
               <input
                 type="checkbox"
                 role="switch"
+                aria-label="Avisos de propuestas"
                 checked={Boolean(contact.enabled)}
+                disabled={saving}
                 onChange={() => void toggleNotices()}
                 className="h-5 w-5 accent-[var(--brand)]"
               />
@@ -257,6 +264,7 @@ function LinkForm({ onLinked, onCancel }) {
             hint="Con indicativo. Si es de Colombia puedes escribir solo los 10 dígitos."
             error={phoneMessage}
             limit={20}
+            name="phone"
             type="tel"
             inputMode="tel"
             autoComplete="tel"
@@ -277,8 +285,8 @@ function LinkForm({ onLinked, onCancel }) {
           footer={
             <div className="flex flex-wrap gap-2">
               <Button type="submit" variant="primary" icon={ShieldCheck} loading={busy}>Verificar</Button>
-              <Button onClick={() => void sendCode()} disabled={busy || wait > 0}>
-                {wait > 0 ? `Reenviar en ${wait} s` : "Reenviar código"}
+              <Button className="tabular" onClick={() => void sendCode()} disabled={busy || wait > 0}>
+                {wait > 0 ? `Reenviar en ${wait} s` : "Reenviar código"}
               </Button>
               <Button
                 variant="ghost"
@@ -298,8 +306,11 @@ function LinkForm({ onLinked, onCancel }) {
             error={codeMessage}
             // Room for a pasted "123 456" or "Código: 123456": cleanCode keeps the six digits.
             limit={CODE_LENGTH * 4}
+            name="code"
             inputMode="numeric"
             autoComplete="one-time-code"
+            spellCheck={false}
+            enterKeyHint="done"
             placeholder="123456"
             fieldClassName="font-mono tracking-[0.4em]"
             value={code}
