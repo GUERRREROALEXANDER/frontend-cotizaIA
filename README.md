@@ -63,6 +63,10 @@ npm run preview
 
 El directorio de distribución es `dist/`. En despliegues independientes, configura `VITE_API_URL` con la URL pública del backend y permite el origen del frontend en `app.cors.allowed-origins`.
 
+### Vercel (despliegue actual)
+
+El frontend publicado vive en Vercel y el backend en Render. `vercel.json` reenvía `/api/*` y `/actuator/health` al backend, así la app y la API comparten origen y las cookies `SameSite=Strict` funcionan sin CORS. Por eso, en Vercel, `VITE_API_URL` debe quedar **vacía**. El mismo archivo envía la política CSP estricta, HSTS y las demás cabeceras de seguridad.
+
 ## Pantallas
 
 Definidas en `src/navigation.js`; la ruta vive en el hash (`#/propuestas`) y las teclas 1 a 9 saltan a cada una.
