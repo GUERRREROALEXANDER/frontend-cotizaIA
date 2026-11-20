@@ -56,6 +56,14 @@ identity metadata only (see [SECURITY-SESSION.md](SECURITY-SESSION.md)).
 - `GET /api/proposals/{id}/readiness` (Specification checks before approving), `GET /api/proposals/{id}/draft/stats`, `GET /api/proposals/{id}/draft/markdown` (`text/markdown`)
 - `GET /api/proposals/{id}/documents`, `GET /api/proposals/{id}/documents/{PROPOSAL|CONTRACT|SCHEDULE}` (PDF)
 
+## WhatsApp (account)
+Account calls live under `/api/auth/me/`, so an expired cookie there is refreshed like any other call.
+- `GET /api/auth/me/whatsapp/info` → `{botNumber, serviceConfigured}`
+- `GET /api/auth/me/whatsapp` → `{phone, enabled, verifiedAt}`
+- `POST /api/auth/me/whatsapp/verification` `{phone ≤ 32, with country code}` → `{phone, expiresInSeconds}`; the 6-digit code arrives by WhatsApp (10 min, 5 attempts); 429 when codes are asked too often
+- `POST /api/auth/me/whatsapp/verify` `{code: 6 digits}` → `{phone, enabled, verifiedAt}`
+- `PATCH /api/auth/me/whatsapp` `{enabled}` turns proposal notices on or off; `DELETE` unlinks the number
+
 ## Knowledge (agent memory)
 - `GET /api/knowledge/documents` → `[{documentId, name, kind, items, passages, createdAt}]`
 - `POST /api/knowledge/documents` multipart `file` (past proposal PDF) → `{documentId, name, passages, items: [...], rejectedItems}`; sent with `upload()` for progress
