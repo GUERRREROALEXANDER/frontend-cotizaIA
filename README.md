@@ -42,6 +42,18 @@ $env:VITE_API_URL = "https://api.ejemplo.com"
 npm run dev
 ```
 
+## Pruebas
+
+```bash
+npm run test:unit   # node --test, sin navegador: helpers puros y cliente de la API (src/api.js)
+npm run test:e2e    # Playwright contra el servidor de Vite (lo arranca solo)
+```
+
+- Las pruebas unitarias viven en `tests/unit/` y no necesitan el backend.
+- `tests/e2e/live-refresh.spec.js` y `tests/e2e/whatsapp.spec.js` simulan la API dentro del navegador.
+- `tests/e2e/session-security.spec.js` necesita el backend en el puerto 8080, y `tests/e2e/demo-tour.spec.js` además la agencia demo cargada con `scripts/seed_demo.py`; si falta, la prueba se salta.
+- El backend limita los intentos de inicio de sesión: si una prueba recibe 429, espera unos minutos o reinicia el backend.
+
 ## Producción
 
 ```bash
