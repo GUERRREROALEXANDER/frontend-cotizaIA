@@ -19,3 +19,9 @@ export const views = [
 export const viewById = Object.fromEntries(views.map((view) => [view.id, view]));
 export const viewBySlug = Object.fromEntries(views.map((view) => [view.slug, view]));
 export const viewGroups = [...new Set(views.map((view) => view.group))];
+
+// "#/propuestas?x=1" -> "proposals". Unknown or empty hashes land on the dashboard.
+export function viewIdFromHash(hash) {
+  const slug = String(hash ?? "").replace(/^#\/?/, "").split("?")[0];
+  return viewBySlug[slug]?.id || "dashboard";
+}

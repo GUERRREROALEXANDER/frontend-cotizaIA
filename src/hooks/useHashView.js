@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { viewById, viewBySlug } from "../navigation.js";
+import { viewById, viewIdFromHash } from "../navigation.js";
 
 function viewFromHash() {
-  const slug = window.location.hash.replace(/^#\/?/, "").split("?")[0];
-  return viewBySlug[slug]?.id || "dashboard";
+  return viewIdFromHash(window.location.hash);
 }
 
 // The current screen lives in the URL hash so refresh, back/forward and
