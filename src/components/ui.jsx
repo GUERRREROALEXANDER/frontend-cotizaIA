@@ -247,7 +247,7 @@ export function StatusBadge({ status, className = "" }) {
   return (
     <Badge tone={statusTone[normalized] || "neutral"} className={className}>
       <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />
-      {statusLabels[normalized] || normalized.replaceAll("_", " ").toLowerCase()}
+      {statusLabel(normalized)}
     </Badge>
   );
 }
