@@ -90,5 +90,5 @@ Definidas en `src/navigation.js`; la ruta vive en el hash (`#/propuestas`) y las
 - Resumen, briefs, clientes, ejecuciones, estrategia de precios y propuestas: `/api/analytics`, `/api/briefs`, `/api/clients`, `/api/executions`, `/api/agency/pricing-model` y `/api/proposals`.
 - Los briefs se pueden crear (texto o PDF), listar, consultar y procesar; la bandeja los carga del servidor con `GET /api/briefs`, así que se ven igual desde cualquier equipo. El navegador solo guarda preferencias (tema, vista de propuestas, última notificación vista).
 - Las vistas se descargan al abrirlas por primera vez (`React.lazy`), así que la pantalla de inicio de sesión no carga los gráficos ni el resto de la aplicación.
-- Los recargos/descuentos de la vista de precios son una previsualización local. El modelo de precio y las horas de ítems de una propuesta sí se guardan a través de las operaciones disponibles en la API.
-- La vista de progreso durante el procesamiento es ilustrativa. Los pasos mostrados como resultados y duraciones se cargan desde las ejecuciones devueltas por el backend.
+- La urgencia, el descuento y la garantía extendida son registros reales de la propuesta (`/api/proposals/{id}/extras`), igual que el modelo de precio y las horas de cada ítem; los ajustes de horas y extras se pueden deshacer.
+- El avance durante el procesamiento es real: la bandeja consulta `GET /api/briefs/{id}/progress` cada segundo mientras el agente trabaja, y los resultados y duraciones de cada paso se cargan desde las ejecuciones del backend.
